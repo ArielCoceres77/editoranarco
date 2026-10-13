@@ -111,13 +111,22 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
 <div class="col">
 
   <section class="paso" id="paso-1">
-    <h2><b>1</b> Efemérides</h2>
-    <p class="ayuda" style="margin:-4px 0 10px">Cada efeméride es una parada del recorrido: un monumento, las estatuas de sus protagonistas y la escena del acontecimiento. En protagonistas podés agregar rasgos entre paréntesis: <i>Emma Goldman (mujer, anteojos, puño)</i>. Rasgos: barba, bigote, sombrero, gorra, boina, anteojos, pelo largo, mujer. Gestos: puño, bandera, libro, señala, orador, brazos cruzados.</p>
-    <div id="lista-ev"></div>
-    <div class="fila" style="margin-top:12px">
-      <button type="button" id="btn-add-ev" class="claro" style="flex:0 0 auto">+ Agregar efeméride</button>
-      <button type="button" id="btn-ordenar" class="claro" style="flex:0 0 auto">Ordenar por fecha</button>
+    <h2><b>1</b> Tus efemérides</h2>
+    <label for="ef-texto">Escribí o pegá las efemérides como te salgan, en cualquier orden: una por línea o todo en un párrafo</label>
+    <textarea id="ef-texto" rows="7" placeholder="13 de octubre de 1909: fusilan a Francesc Ferrer i Guàrdia en el castillo de Montjuïc, Barcelona.&#10;8 de septiembre de 1901: Ferrer abre en Barcelona la Escuela Moderna, laica y mixta.&#10;1911: Emma Goldman y Alexander Berkman abren en Nueva York el Centro Ferrer."></textarea>
+    <div class="fila" style="margin-top:8px;align-items:center">
+      <p class="ayuda" id="ef-info" style="flex:1 1 260px;margin:0">El programa las ordena por fecha y completa solo lugar, título, protagonistas y citas.</p>
+      <button type="button" id="btn-ejemplo" class="claro" style="flex:0 0 auto">Cargar ejemplo</button>
     </div>
+    <details id="fichas" style="margin-top:12px">
+      <summary style="cursor:pointer;font-family:var(--display);font-size:17px;letter-spacing:.5px;text-transform:uppercase">Revisar las fichas (opcional) · <span id="fichas-n">0</span></summary>
+      <p class="ayuda" style="margin:8px 0 10px">Lo que corrijas acá se respeta aunque después cambies el texto de arriba. En protagonistas podés sumar rasgos entre paréntesis: <i>Emma Goldman (mujer, anteojos, puño)</i>. Rasgos: barba, bigote, sombrero, gorra, boina, anteojos, pelo largo, mujer. Gestos: puño, bandera, libro, señala, orador, brazos cruzados.</p>
+      <div id="lista-ev"></div>
+      <div class="fila" style="margin-top:12px">
+        <button type="button" id="btn-add-ev" class="claro" style="flex:0 0 auto">+ Agregar ficha a mano</button>
+        <button type="button" id="btn-ordenar" class="claro" style="flex:0 0 auto">Ordenar por fecha</button>
+      </div>
+    </details>
   </section>
 
   <section class="paso" id="paso-2">
@@ -4172,7 +4181,109 @@ const EJEMPLO={
     {fecha:'1911',lugar:'Nueva York',titulo:'La Escuela Moderna cruza el océano',protagonistas:'Emma Goldman (mujer, anteojos, orador), Alexander Berkman (bigote, anteojos, libro)',descripcion:'En Nueva York, la Asociación Francisco Ferrer, impulsada entre otros por Emma Goldman y Alexander Berkman, abre el Centro Ferrer y una Escuela Moderna. La idea de Ferrer sobrevive a su fusilamiento y se multiplica en escuelas libres de varios países.',cita:'',autor:'',escena:'escuela',monumento:'auto'}
   ]
 };
-function nuevoEvento(){return{fecha:'',lugar:'',titulo:'',protagonistas:'',descripcion:'',cita:'',autor:'',escena:'auto',monumento:'auto'}}
+function nuevoEvento(){return{fecha:'',lugar:'',titulo:'',protagonistas:'',descripcion:'',cita:'',autor:'',escena:'auto',monumento:'auto',src:'',editado:false}}
+const EJEMPLO_TEXTO=`13 de octubre de 1909: un tribunal militar fusila a Francesc Ferrer i Guàrdia en el castillo de Montjuïc, Barcelona, acusado sin pruebas de dirigir la Semana Trágica. Según los testimonios, frente al pelotón gritó «¡Viva la Escuela Moderna!».
+8 de septiembre de 1901: Francesc Ferrer i Guàrdia abre en Barcelona la Escuela Moderna, una escuela laica, mixta y racionalista, sin premios ni castigos, donde niñas y niños aprenden juntos.
+1911: Emma Goldman y Alexander Berkman impulsan en Nueva York el Centro Ferrer y una Escuela Moderna. La idea de Ferrer sobrevive a su fusilamiento.
+26 de julio de 1909: estalla la Semana Trágica en Barcelona. Una huelga general contra el envío de reservistas a la guerra de Marruecos se convierte en revuelta, con barricadas en las calles.`;
+
+/* ---------------- lectura automática de efemérides ---------------- */
+const MES_RX='enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre';
+const MES_NOM=['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function buscarFecha(t){
+  const c=[];let m;
+  const r1=new RegExp(`\\b(\\d{1,2})\\s*(?:º|°)?\\s+de\\s+(${MES_RX})(?:\\s+(?:de|del)\\s+(\\d{3,4}))?`,'i');
+  const r2=/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{3,4})\b/;
+  const r3=new RegExp(`\\b(${MES_RX})\\s+(?:de|del)\\s+(\\d{3,4})`,'i');
+  const r4=/\b(1[0-9]{3}|20[0-9]{2})\b/;
+  if(m=t.match(r1)){const y=m[3]||(t.match(r4)||[])[1];c.push({i:m.index,l:m[0].length,d:+m[1],m:MESES[m[2].toLowerCase()],y:y?+y:null,p:m[3]?0:2})}
+  if(m=t.match(r2)){const mm=+m[2];if(mm>=1&&mm<=12)c.push({i:m.index,l:m[0].length,d:+m[1],m:mm,y:+m[3],p:1})}
+  if(m=t.match(r3))c.push({i:m.index,l:m[0].length,d:0,m:MESES[m[1].toLowerCase()],y:+m[2],p:3});
+  if(m=t.match(r4))c.push({i:m.index,l:m[0].length,d:0,m:0,y:+m[1],p:4});
+  if(!c.length)return null;
+  c.sort((a,b)=>a.p-b.p);const f=c[0];
+  // el comienzo de la fecha para recortarla del texto: la expresión más temprana entre las que hablan de la misma fecha
+  const ini=Math.min(...c.filter(x=>x.y===f.y||!x.y).map(x=>x.i));const fin=Math.max(...c.filter(x=>x.i<f.i+f.l+12&&(x.y===f.y||!x.y)).map(x=>x.i+x.l));
+  f.txt=[f.d?f.d+' de':'',f.m?MES_NOM[f.m]+(f.y?' de':''):'',f.y||''].filter(Boolean).join(' ');f.ini=ini;f.fin=fin;return f;
+}
+const NO_PERSONA=['Semana Trágica','Escuela Moderna','Buenos Aires','Nueva York','Guerra Civil','Primera Guerra Mundial','Segunda Guerra Mundial','Santa Fe','San Pablo','Los Ángeles','Río de la Plata','Estados Unidos','Reino Unido','Primero de Mayo','Comuna de París','Centro Ferrer','Patagonia Rebelde'];
+const PALABRAS_INICIO=['El','La','Los','Las','En','Un','Una','Según','Desde','Hoy','Durante','Tras','Con','Por','Para','Sin','Ese','Esa','Aquel','Aquella','Al','Del','Cuando','Mientras','Allí','Ahí'];
+function detectarLugar(t){
+  const rx=/\ben\s+((?:(?:el|la|los|las)\s+)?(?:[a-záéíóúñ]+\s+(?:(?:de|del)\s+)?)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+(?:\s+(?:(?:de|del|y)\s+)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+)*)/gu;let m;const out=[];
+  while(m=rx.exec(t)){let l=m[1].replace(/^(el|la|los|las)\s+/,'');if(new RegExp(`^(${MES_RX})`,'i').test(l))continue;l=l.charAt(0).toUpperCase()+l.slice(1);out.push(l)}
+  if(!out.length){const d=t.match(/\bde\s+([A-ZÁÉÍÓÚÑ][a-zà-ÿ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-zà-ÿ]+)?)\b/u);return d&&!new RegExp(`^(${MES_RX})`,'i').test(d[1])&&!NO_PERSONA.includes(d[1])?d[1]:''}
+  // si después del lugar viene ", Ciudad", sumarla: «castillo de Montjuïc, Barcelona»
+  const pos=t.indexOf(out[0].replace(/^./,c=>c.toLowerCase()))>=0?t.indexOf(out[0].replace(/^./,c=>c.toLowerCase())):t.indexOf(out[0]);
+  const resto=t.slice(pos+out[0].length);const m2=resto.match(/^,\s+([A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+(?:\s+[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+)?)\s*[,.;:]/);
+  return m2&&!out[0].includes(m2[1])?out[0]+', '+m2[1]:out[0];
+}
+function detectarPersonas(t,lugar){
+  const rx=/([A-ZÁÉÍÓÚÑÀ-Þ][a-zà-ÿ'’-]+(?:\s+(?:(?:de|del|di|da|i|van|von|la|le)\s+)?[A-ZÁÉÍÓÚÑÀ-Þ][a-zà-ÿ'’-]+)+)/gu;let m;const out=[];
+  while(m=rx.exec(t)){let c=m[1];let antes=t.slice(Math.max(0,m.index-6),m.index).toLowerCase();
+    let tok=c.split(/\s+/);while(tok.length&&PALABRAS_INICIO.includes(tok[0])){tok.shift();antes=' x '}
+    while(tok.length&&/^(de|del|di|da|i|van|von|la|le)$/.test(tok[0]))tok.shift();
+    c=tok.join(' ');if(tok.filter(w=>/^[A-ZÁÉÍÓÚÑÀ-Þ]/.test(w)).length<2)continue;
+    if(/\b(el|la|los|las|en|del|al|un|una)\s+$/.test(antes))continue;
+    if(NO_PERSONA.some(n=>c.includes(n)||n.includes(c)))continue;
+    if(lugar&&(lugar.includes(c)||c.includes(lugar.split(',')[0])))continue;
+    if(new RegExp(`\\b(${MES_RX})\\b`,'i').test(c))continue;
+    out.push(c)}
+  return [...new Set(out)].filter((c,i,a)=>!a.some(o=>o!==c&&o.includes(c)));
+}
+function tituloDe(txt,lugar){
+  let t=txt.replace(/[«"“][^»"”]*[»"”]/g,'').trim();t=t.split(/(?<=[.!?…])\s+/)[0]||t;
+  t=t.split(/[:;]/)[0];const w=t.split(/\s+/);
+  if(w.length>9){const c=t.search(/,\s/);if(c>0&&t.slice(0,c).split(/\s+/).length>=4)t=t.slice(0,c)}
+  t=t.replace(/\s+en\s+(?:(?:el|la|los|las)\s+)?(?:[a-záéíóúñ]+\s+(?:(?:de|del)\s+)?)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+(?:\s+(?:(?:de|del|y)\s+)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+)*(?:,\s+[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+(?:\s+[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+)?(?=[,.;:]|$))?/u,'');
+  let ws=t.split(/\s+/).filter(Boolean);if(ws.length>10){const k=ws.findIndex((w,i)=>i>=5&&/^(y|por|que|con|tras|para|durante|contra|cuando|mientras|luego)$/i.test(w));if(k>0)ws=ws.slice(0,k)}if(ws.length>11){ws=ws.slice(0,11);while(ws.length>6&&/^(y|de|del|la|el|los|las|en|a|por|con|que|una?|para)$/i.test(ws[ws.length-1]))ws.pop()}
+  t=ws.join(' ').replace(/[,.;:\s]+$/,'');return t.charAt(0).toUpperCase()+t.slice(1);
+}
+function partirEfemerides(texto){
+  const lineas=String(texto||'').replace(/\r/g,'').split('\n').map(l=>l.replace(/^\s*(?:[-–—•*·]+|\d{1,2}[.)])\s+/,'').trim()).filter(Boolean);
+  const grupos=[];
+  for(const l of lineas){
+    const fl=buscarFecha(l);
+    if(!fl&&grupos.length){grupos[grupos.length-1]+=' '+l;continue}
+    // dentro de un párrafo, una oración que empieza con fecha abre una efeméride nueva
+    const oras=l.split(/(?<=[.!?…])\s+(?=[A-ZÁÉÍÓÚÑ¡¿«"“0-9])/);let cur=null;
+    for(const o of oras){const f=buscarFecha(o);
+      if(f&&f.ini<22&&(cur===null||buscarFecha(cur))){if(cur)grupos.push(cur);cur=o}else cur=cur?cur+' '+o:o}
+    if(cur)grupos.push(cur);
+  }
+  return grupos;
+}
+function fichaDe(raw){
+  const ev=nuevoEvento();ev.src=raw.replace(/\s+/g,' ').trim();
+  const f=buscarFecha(raw);let txt=raw;
+  if(f){ev.fecha=f.txt;if(f.ini<22){txt=(raw.slice(0,f.ini).replace(/\b(el|en|a|hacia|desde)\s*$/i,'')+raw.slice(f.fin)).replace(/^[\s,:;.–—-]+/,'')}}
+  txt=txt.trim();txt=txt.charAt(0).toUpperCase()+txt.slice(1);
+  const cm=txt.match(/[«"“]([^»"”]{2,240})[»"”]/);
+  ev.lugar=detectarLugar(txt);
+  const sinCita=txt.replace(/[«"“][^»"”]*[»"”]/g,'');
+  const pers=detectarPersonas(sinCita,ev.lugar);
+  ev.protagonistas=pers.join(', ');
+  if(cm){ev.cita=cm[1].trim();ev.autor=pers.length===1?pers[0]:''}
+  ev.descripcion=punto(txt);ev.titulo=tituloDe(txt,ev.lugar);
+  return ev;
+}
+let textoLeido='';
+function leerTexto(forzar){
+  const t=$('#ef-texto').value;if(!forzar&&t===textoLeido)return;textoLeido=t;state.texto=t;
+  const nuevas=partirEfemerides(t).map(fichaDe);
+  const srcs=new Set(nuevas.map(e=>e.src));
+  const manuales=state.events.filter(e=>e.editado&&(!e.src||srcs.has(e.src)));
+  const msrc=new Set(manuales.map(e=>e.src).filter(Boolean));
+  state.events=[...manuales,...nuevas.filter(e=>!msrc.has(e.src))].sort((a,b)=>claveFecha(a)-claveFecha(b));
+  renderEventos();guardarLocal();mundoLuego();infoTexto();
+}
+function infoTexto(){
+  const evs=state.events;const n=evs.length;$('#fichas-n').textContent=n+(n===1?' ficha':' fichas');
+  const e=$('#ef-info');if(!n){e.textContent='El programa las ordena por fecha y completa solo lugar, título, protagonistas y citas.';return}
+  const an=evs.map(x=>parseFecha(x.fecha).anio).filter(Boolean);const sinF=evs.filter(x=>!parseFecha(x.fecha).anio).length;
+  const pr=new Set(evs.flatMap(x=>parseProtagonistas(x.protagonistas).map(p=>p.nombre)));const lu=new Set(evs.map(x=>x.lugar).filter(Boolean));
+  e.textContent=`Encontré ${n} efeméride${n>1?'s':''}${an.length>1?` y las ordené de ${an[0]} a ${an[an.length-1]}`:''}. Detecté ${lu.size} lugar${lu.size===1?'':'es'} y ${pr.size} protagonista${pr.size===1?'':'s'}.`+(sinF?` ${sinF} no tiene${sinF>1?'n':''} año: agregalo para ordenarla bien.`:'');
+}
+
 
 /* ---------------- fechas ---------------- */
 function parseFecha(txt){
@@ -5303,9 +5414,9 @@ function renderEventos(){
 let tMundo=null;
 function mundoLuego(){clearTimeout(tMundo);tMundo=setTimeout(()=>{construirMundo();invalidar();dibujarVista()},450)}
 function guardarLocal(){lsSet('ae_proyecto',JSON.stringify(proyecto()))}
-function proyecto(){return{v:2,camara:state.camara,cine:state.cine,pelicula:state.pelicula,cenizas:state.cenizas,modo:state.modo,res:state.res,monitor:state.monitor,vozPrueba:state.vozPrueba,titulo:state.titulo,fecha:state.fecha,duracion:state.duracion,formato:state.formato,subs:state.subs,events:state.events,guion:state.guion,voces:state.voces,modelo:state.modelo,musVol:state.musVol,musDuck:state.musDuck}}
+function proyecto(){return{v:3,texto:state.texto||'',camara:state.camara,cine:state.cine,pelicula:state.pelicula,cenizas:state.cenizas,modo:state.modo,res:state.res,monitor:state.monitor,vozPrueba:state.vozPrueba,titulo:state.titulo,fecha:state.fecha,duracion:state.duracion,formato:state.formato,subs:state.subs,events:state.events,guion:state.guion,voces:state.voces,modelo:state.modelo,musVol:state.musVol,musDuck:state.musDuck}}
 function cargarProyecto(p){
-  Object.assign(state,{camara:p.camara||'dinamico',cine:p.cine!==false,pelicula:p.pelicula!==false,cenizas:p.cenizas!==false,modo:p.modo||'real',res:p.res||'1080',monitor:p.monitor!==false,vozPrueba:p.vozPrueba!==false,titulo:p.titulo||'',fecha:p.fecha||'',duracion:+p.duracion||5,formato:p.formato||'16:9',subs:p.subs!==false,events:(p.events||[]).map(e=>({...nuevoEvento(),...e})),guion:p.guion||'',voces:p.voces||{N:'',V2:'',C:''},modelo:p.modelo||'eleven_multilingual_v2',musVol:p.musVol??.55,musDuck:p.musDuck??.16});
+  Object.assign(state,{texto:p.texto||'',camara:p.camara||'dinamico',cine:p.cine!==false,pelicula:p.pelicula!==false,cenizas:p.cenizas!==false,modo:p.modo||'real',res:p.res||'1080',monitor:p.monitor!==false,vozPrueba:p.vozPrueba!==false,titulo:p.titulo||'',fecha:p.fecha||'',duracion:+p.duracion||5,formato:p.formato||'16:9',subs:p.subs!==false,events:(p.events||[]).map(e=>({...nuevoEvento(),...e})),guion:p.guion||'',voces:p.voces||{N:'',V2:'',C:''},modelo:p.modelo||'eleven_multilingual_v2',musVol:p.musVol??.55,musDuck:p.musDuck??.16});
   $('#ep-titulo').value=state.titulo;$('#ep-fecha').value=state.fecha;
   ($('#dur-'+state.duracion)||$('#dur-5')).checked=true;$$('input[name=fmt]').forEach(r=>r.checked=r.value===state.formato);
   $('#op-subs').checked=state.subs;
@@ -5313,7 +5424,8 @@ function cargarProyecto(p){
   $('#op-cine').checked=state.cine;$('#op-pelicula').checked=state.pelicula;$('#op-cenizas').checked=state.cenizas;$('#op-monitor').checked=state.monitor;$('#op-vozprueba').checked=state.vozPrueba;ayudaModo();$('#guion').value=state.guion;$('#el-modelo').value=state.modelo;
   $('#mus-vol').value=Math.round(state.musVol*100);$('#mus-duck').value=Math.round(state.musDuck*100);
   $('#mus-vol-v').textContent=$('#mus-vol').value+'%';$('#mus-duck-v').textContent=$('#mus-duck').value+'%';
-  renderEventos();construirMundo();invalidar();infoGuion();infoTTS();dibujarVista();
+  $('#ef-texto').value=state.texto||'';textoLeido=state.texto||'';
+  renderEventos();infoTexto();construirMundo();invalidar();infoGuion();infoTTS();dibujarVista();
 }
 function tituloAuto(evs){
   if(evs.length===1)return evs[0].titulo||evs[0].fecha;
@@ -5324,8 +5436,10 @@ function tituloAuto(evs){
 }
 function estadoTodo(m,err){const e=$('#todo-estado');e.textContent=m||'';e.classList.toggle('error',!!err)}
 async function generarTodo(){
+  leerTexto();state.events.sort((a,b)=>claveFecha(a)-claveFecha(b));renderEventos();
+  if(!state.fecha.trim()){const h=new Date();state.fecha=h.getDate()+' de '+MES_NOM[h.getMonth()+1];$('#ep-fecha').value=state.fecha}
   const evs=state.events.filter(e=>e.titulo||e.descripcion||e.fecha);
-  if(!evs.length){estadoTodo('Cargá al menos una efeméride con su fecha y qué pasó.',true);$('#lista-ev input')?.focus();return}
+  if(!evs.length){estadoTodo('Escribí al menos una efeméride en el paso 1: la fecha y qué pasó.',true);$('#ef-texto').focus();return}
   if(!state.titulo.trim()){state.titulo=tituloAuto(evs);$('#ep-titulo').value=state.titulo}
   state.guion=generarGuion();$('#guion').value=state.guion;
   construirMundo();invalidar();infoGuion();infoTTS();guardarLocal();
@@ -5342,7 +5456,7 @@ function ayudaModo(){const e=$('#modo-ayuda');if(!e)return;const T=TL||{total:st
   e.textContent=state.modo==='real'?`Graba mientras se reproduce: el video de ${fmt(T.total)} tarda ${fmt(T.total)}. Dejá la pestaña a la vista y no minimices la ventana. Sale en MP4 con Chrome o Edge.`:'Arma cada cuadro por separado: sale perfecto aunque la PC sea lenta, pero puede tardar varias veces la duración del video.';
   $('#btn-export').textContent=state.modo==='real'?'● Grabar video':'Exportar MP4 cuadro a cuadro';}
 function actualizarInfoTL(){
-  const el=$('#tl-info');if(!el)return;const T=tl();const sinAudio=T.segs.filter(s=>s.estimado).length;
+  const el=$('#tl-info');if(!el)return;if(!state.guion.trim()){el.textContent=state.events.length?'Tocá «Generar guion y muestra» para armar el video.':'Escribí tus efemérides en el paso 1 y tocá «Generar guion y muestra».';return}const T=tl();const sinAudio=T.segs.filter(s=>s.estimado).length;
   let m=`Duración del video: ${fmt(T.total)}`;
   if(T.propia)m+=' · con tu locución subida';else if(sinAudio===T.segs.length&&T.segs.length)m+=' · tiempos estimados (sin locución todavía)';else if(sinAudio)m+=` · ${sinAudio} fragmentos sin audio (cambiaron o faltan)`;else if(T.segs.length)m+=' · locución completa';
   if(!T.propia&&T.total>state.duracion*60+20)m+=`. La voz supera los ${state.duracion} minutos: acortá el guion o elegí una duración mayor.`;
@@ -5364,15 +5478,18 @@ function enlazar(){
   $$('input[name=modo]').forEach(r=>r.addEventListener('change',()=>{state.modo=r.value;ayudaModo();guardarLocal()}));
   $('#op-res').addEventListener('change',e=>{state.res=e.target.value;ayudaModo();guardarLocal()});
   $('#btn-todo').addEventListener('click',generarTodo);
+  let tt=null;$('#ef-texto').addEventListener('input',()=>{clearTimeout(tt);tt=setTimeout(()=>leerTexto(),700)});
+  $('#ef-texto').addEventListener('blur',()=>leerTexto());
+  $('#btn-ejemplo').addEventListener('click',()=>{$('#ef-texto').value=EJEMPLO_TEXTO;state.titulo='';$('#ep-titulo').value='';leerTexto(true)});
   $('#btn-muestra').addEventListener('click',async()=>{invalidar();pausa();tPlay=0;$('#paso-6').scrollIntoView({behavior:'smooth',block:'start'});await play()});
   const L=$('#lista-ev');
-  L.addEventListener('input',e=>{const card=e.target.closest('.ev');if(!card||!e.target.dataset.k)return;const i=+card.dataset.i;state.events[i][e.target.dataset.k]=e.target.value;
+  L.addEventListener('input',e=>{const card=e.target.closest('.ev');if(!card||!e.target.dataset.k)return;const i=+card.dataset.i;state.events[i][e.target.dataset.k]=e.target.value;state.events[i].editado=true;
     if(e.target.dataset.k==='titulo'||e.target.dataset.k==='fecha')card.querySelector('.tit').textContent=state.events[i].titulo||state.events[i].fecha||'Nueva efeméride';
     guardarLocal();mundoLuego()});
   L.addEventListener('click',e=>{const b=e.target.closest('button[data-acc]');if(!b)return;const i=+b.closest('.ev').dataset.i;const A=state.events;
     if(b.dataset.acc==='sube'&&i>0)[A[i-1],A[i]]=[A[i],A[i-1]];if(b.dataset.acc==='baja'&&i<A.length-1)[A[i+1],A[i]]=[A[i],A[i+1]];if(b.dataset.acc==='borra')A.splice(i,1);
-    renderEventos();guardarLocal();mundoLuego()});
-  $('#btn-add-ev').addEventListener('click',()=>{state.events.push(nuevoEvento());renderEventos();guardarLocal();mundoLuego();const c=L.lastElementChild;c&&c.querySelector('input').focus()});
+    renderEventos();infoTexto();guardarLocal();mundoLuego()});
+  $('#btn-add-ev').addEventListener('click',()=>{const n=nuevoEvento();n.editado=true;state.events.push(n);$('#fichas').open=true;renderEventos();guardarLocal();mundoLuego();const c=L.lastElementChild;c&&c.querySelector('input').focus()});
   $('#btn-ordenar').addEventListener('click',()=>{state.events.sort((a,b)=>claveFecha(a)-claveFecha(b));renderEventos();guardarLocal();mundoLuego()});
   $('#btn-guion').addEventListener('click',()=>{if(state.guion.trim()&&!$('#btn-guion').dataset.ok){$('#btn-guion').dataset.ok='1';$('#btn-guion').textContent='¿Reemplazar el guion? Tocá de nuevo';setTimeout(()=>{delete $('#btn-guion').dataset.ok;$('#btn-guion').textContent='Generar guion'},3500);return}
     delete $('#btn-guion').dataset.ok;$('#btn-guion').textContent='Generar guion';
@@ -5417,7 +5534,7 @@ async function iniciar(){
   await cargarMusicaCanal();
   const k=lsGet('ae_key','');if(k){$('#el-key').value=k;$('#el-recordar').checked=true}
   let p=null;try{p=JSON.parse(lsGet('ae_proyecto','null'))}catch(e){}
-  if(!p||!p.events||!p.events.length){p={...EJEMPLO,duracion:8,formato:'16:9'};p.guion='';}
+  if(!p){p={events:[],duracion:5,formato:'16:9',guion:''}}
   cargarProyecto(p);
   if(!state.guion.trim()){state.guion=generarGuion();$('#guion').value=state.guion;invalidar();infoGuion();infoTTS()}
   tPlay=Math.min(14,tl().total*.1);dibujarVista();
