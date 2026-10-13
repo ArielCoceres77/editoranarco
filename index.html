@@ -46,12 +46,23 @@ button:hover{background:var(--rojo);border-color:var(--rojo)}
 button.rojo{background:var(--rojo);border-color:var(--rojo)}
 button.rojo:hover{background:var(--rojo2);border-color:var(--rojo2)}
 button.claro{background:transparent;color:var(--tinta)}
-button.grande{font-size:22px;padding:14px 22px;margin-top:16px;width:100%;justify-content:center;letter-spacing:1px}
+button.grande{font-size:21px;padding:14px 18px;justify-content:center;letter-spacing:1px;flex:1 1 200px}
+.acciones-grandes{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.aviso{background:var(--rojo);color:var(--papel);padding:12px 20px;font-size:16px;text-align:center}
+details.ajustes>summary{font-family:var(--display);font-size:24px;text-transform:uppercase;cursor:pointer;display:flex;gap:10px;align-items:center;list-style:none}
+details.ajustes>summary b{background:var(--tinta);color:var(--papel);font-weight:400;min-width:34px;height:34px;display:inline-grid;place-items:center}
+.sub{border-top:2px solid var(--tinta);margin-top:16px;padding-top:12px}
+.sub h3{font-family:var(--display);font-weight:400;font-size:19px;text-transform:uppercase;margin:0 0 8px;letter-spacing:.4px}
+.sum{cursor:pointer;font-family:var(--display);font-size:15px;text-transform:uppercase;letter-spacing:.5px}
+#mini-prev{display:block;width:100%;border:2px solid var(--tinta);aspect-ratio:16/9;object-fit:cover;background:var(--tinta)}
 button.claro:hover{background:var(--tinta);color:var(--papel)}
 button:disabled{opacity:.45;cursor:not-allowed}
 header button{border-color:var(--papel);background:transparent;color:var(--papel)}
 .segmentado{display:flex;border:2px solid var(--tinta);width:max-content;max-width:100%;flex-wrap:wrap}
 .segmentado input{position:absolute;opacity:0;pointer-events:none}
+.opciones{display:grid;gap:12px;margin-top:14px}
+.opciones>div{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.opciones>div>label:first-child{min-width:90px;margin:0}
 .segmentado label{margin:0;padding:7px 14px;cursor:pointer;font-family:var(--display);font-size:16px;letter-spacing:.5px;color:var(--tinta);text-transform:none}
 .segmentado input:checked+label{background:var(--tinta);color:var(--papel)}
 .segmentado input:focus-visible+label{outline:3px solid var(--rojo)}
@@ -82,7 +93,6 @@ input[type=range]{accent-color:var(--rojo)}
 .titulos div{display:flex;gap:8px;align-items:center;background:#F7F1E3;border:1.5px solid var(--tinta);padding:6px 8px}
 .titulos span{flex:1;min-width:0}
 .titulos small{font-variant-numeric:tabular-nums;color:var(--gris)}
-#mini-prev{max-width:100%;border:2px solid var(--tinta);display:block;margin-top:10px}
 .leyenda{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin:6px 0 8px}
 .leyenda code{background:var(--tinta);color:var(--papel);padding:1px 6px;font-size:12px}
 .segs{max-height:160px;overflow:auto;font-size:12.5px;border:1px solid var(--linea);margin-top:8px;padding:6px;background:#F7F1E3}
@@ -98,45 +108,23 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
 <header>
   <div>
     <h1>AnarcoEfemérideS</h1>
-    <p>Editor de video · recorrido 3D por la memoria libertaria</p>
-  </div>
-  <div class="acciones">
-    <button id="btn-guardar" type="button">Guardar proyecto</button>
-    <button id="btn-abrir" type="button">Abrir proyecto</button>
-    <input type="file" id="in-proyecto" accept=".json,application/json" hidden>
+    <p>Escribí las efemérides · el video se arma solo</p>
   </div>
 </header>
+<div id="aviso-vista" class="aviso" hidden>Estás viendo una vista previa: acá no hay internet ni descargas. <b>Descargá el archivo y abrilo con doble clic en Chrome o Edge</b> para que funcionen la voz y la grabación.</div>
 
 <main>
 <div class="col">
-
   <section class="paso" id="paso-1">
-    <h2><b>1</b> Tus efemérides</h2>
-    <label for="ef-texto">Escribí o pegá las efemérides como te salgan, en cualquier orden: una por línea o todo en un párrafo</label>
-    <textarea id="ef-texto" rows="7" placeholder="13 de octubre de 1909: fusilan a Francesc Ferrer i Guàrdia en el castillo de Montjuïc, Barcelona.&#10;8 de septiembre de 1901: Ferrer abre en Barcelona la Escuela Moderna, laica y mixta.&#10;1911: Emma Goldman y Alexander Berkman abren en Nueva York el Centro Ferrer."></textarea>
+    <h2><b>1</b> Escribí tus efemérides</h2>
+    <label for="ef-texto">Como te salgan y en cualquier orden: una por línea o todo en un párrafo. Todo se actualiza solo.</label>
+    <textarea id="ef-texto" rows="9" placeholder="13 de octubre de 1909: fusilan a Francesc Ferrer i Guàrdia en el castillo de Montjuïc, Barcelona.&#10;8 de septiembre de 1901: Ferrer abre en Barcelona la Escuela Moderna, laica y mixta.&#10;1911: Emma Goldman y Alexander Berkman abren en Nueva York el Centro Ferrer."></textarea>
     <div class="fila" style="margin-top:8px;align-items:center">
-      <p class="ayuda" id="ef-info" style="flex:1 1 260px;margin:0">El programa las ordena por fecha y completa solo lugar, título, protagonistas y citas.</p>
+      <p class="ayuda" id="ef-info" style="flex:1 1 260px;margin:0"></p>
       <button type="button" id="btn-ejemplo" class="claro" style="flex:0 0 auto">Cargar ejemplo</button>
     </div>
-    <details id="fichas" style="margin-top:12px">
-      <summary style="cursor:pointer;font-family:var(--display);font-size:17px;letter-spacing:.5px;text-transform:uppercase">Revisar las fichas (opcional) · <span id="fichas-n">0</span></summary>
-      <p class="ayuda" style="margin:8px 0 10px">Lo que corrijas acá se respeta aunque después cambies el texto de arriba. En protagonistas podés sumar rasgos entre paréntesis: <i>Emma Goldman (mujer, anteojos, puño)</i>. Rasgos: barba, bigote, sombrero, gorra, boina, anteojos, pelo largo, mujer. Gestos: puño, bandera, libro, señala, orador, brazos cruzados.</p>
-      <div id="lista-ev"></div>
-      <div class="fila" style="margin-top:12px">
-        <button type="button" id="btn-add-ev" class="claro" style="flex:0 0 auto">+ Agregar ficha a mano</button>
-        <button type="button" id="btn-ordenar" class="claro" style="flex:0 0 auto">Ordenar por fecha</button>
-      </div>
-    </details>
-  </section>
-
-  <section class="paso" id="paso-2">
-    <h2><b>2</b> Duración, formato y estilo</h2>
-    <div class="fila">
-      <div style="flex:2 1 240px"><label for="ep-titulo">Título del episodio (si lo dejás vacío, se arma solo)</label><input type="text" id="ep-titulo"></div>
-      <div><label for="ep-fecha">Fecha del episodio</label><input type="text" id="ep-fecha" placeholder="13 de octubre"></div>
-    </div>
-    <div class="fila" style="margin-top:12px">
-      <div><label>Duración del video</label>
+    <div class="opciones">
+      <div><label>Duración</label>
         <div class="segmentado">
           <input type="radio" name="dur" id="dur-3" value="3"><label for="dur-3">3 min</label>
           <input type="radio" name="dur" id="dur-5" value="5" checked><label for="dur-5">5 min</label>
@@ -145,11 +133,9 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
       <div><label>Formato</label>
         <div class="segmentado">
           <input type="radio" name="fmt" id="fmt-169" value="16:9" checked><label for="fmt-169">16:9 YouTube</label>
-          <input type="radio" name="fmt" id="fmt-45" value="4:5"><label for="fmt-45">4:5 Feed</label>
-          <input type="radio" name="fmt" id="fmt-916" value="9:16"><label for="fmt-916">9:16 TikTok/Reels</label>
+          <input type="radio" name="fmt" id="fmt-45" value="4:5"><label for="fmt-45">4:5 Instagram</label>
+          <input type="radio" name="fmt" id="fmt-916" value="9:16"><label for="fmt-916">9:16 TikTok</label>
         </div></div>
-    </div>
-    <div class="fila" style="margin-top:12px">
       <div><label>Cámaras</label>
         <div class="segmentado">
           <input type="radio" name="cam" id="cam-sereno" value="sereno"><label for="cam-sereno">Serena</label>
@@ -157,112 +143,140 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
           <input type="radio" name="cam" id="cam-epico" value="epico"><label for="cam-epico">Épica</label>
         </div></div>
     </div>
-    <div class="fila" style="margin-top:12px;align-items:center">
-      <label class="check"><input type="checkbox" id="op-subs" checked> Subtítulos</label>
-      <label class="check"><input type="checkbox" id="op-cine" checked> Franjas de cine (16:9)</label>
-      <label class="check"><input type="checkbox" id="op-pelicula" checked> Polvo y rayones de película</label>
-      <label class="check"><input type="checkbox" id="op-cenizas" checked> Papeles y cenizas en el aire</label>
+    <div class="fila" style="margin-top:12px">
+      <div style="flex:2 1 240px"><label for="ep-titulo">Título (se completa solo; si lo cambiás, queda el tuyo)</label><input type="text" id="ep-titulo"></div>
+      <div><label for="ep-fecha">Fecha del episodio</label><input type="text" id="ep-fecha"></div>
     </div>
-    <button type="button" id="btn-todo" class="rojo grande">▶ Generar guion y muestra</button>
     <div class="estado" id="todo-estado"></div>
   </section>
 
-
-
-  <section class="paso" id="paso-3">
-    <h2><b>3</b> Guion</h2>
-    <div class="fila">
-      <button type="button" id="btn-muestra" class="rojo" style="flex:0 0 auto">Actualizar muestra</button>
-      <button type="button" id="btn-guion" class="claro" style="flex:0 0 auto">Volver a generar el guion</button>
-      <button type="button" id="btn-pedido" class="claro" style="flex:0 0 auto">Copiar pedido para una IA</button>
+  <section class="paso" id="paso-mini">
+    <h2><b>3</b> Miniatura</h2>
+    <img id="mini-prev" alt="Miniatura para YouTube">
+    <div class="fila" style="margin-top:10px">
+      <button type="button" id="btn-mini" class="rojo" style="flex:0 0 auto">Bajar miniatura YouTube</button>
+      <button type="button" id="btn-portada" class="claro" style="flex:0 0 auto">Bajar portada vertical</button>
     </div>
-    <div class="leyenda"><span><code>[N]</code> narrador</span><span><code>[V2]</code> segunda voz (fechas)</span><span><code>[C]</code> citas</span><span><code># 2 · …</code> parada 2</span></div>
-    <label for="guion" class="sr">Guion</label>
-    <textarea id="guion" spellcheck="true"></textarea>
-    <p class="ayuda" id="guion-info"></p>
-  </section>
-
-  <section class="paso" id="paso-4">
-    <h2><b>4</b> Locución con ElevenLabs</h2>
-    <div class="fila">
-      <div style="flex:2 1 240px"><label for="el-key">Clave de API de ElevenLabs</label><input type="password" id="el-key" autocomplete="off" placeholder="sk_…"></div>
-      <div style="flex:0 0 auto;align-self:end"><button type="button" id="btn-voces">Cargar mis voces</button></div>
-    </div>
-    <label class="check" style="margin-top:8px"><input type="checkbox" id="el-recordar"> Recordar la clave en este navegador</label>
-    <div class="fila" style="margin-top:12px">
-      <div><label for="voz-N">Narrador [N]</label><select id="voz-N"><option value="">— cargá tus voces —</option></select></div>
-      <div><label for="voz-V2">Segunda voz [V2]</label><select id="voz-V2"><option value="">Igual que el narrador</option></select></div>
-      <div><label for="voz-C">Citas [C]</label><select id="voz-C"><option value="">Igual que el narrador</option></select></div>
-    </div>
-    <div class="fila" style="margin-top:12px;align-items:end">
-      <div><label for="el-modelo">Modelo</label>
-        <select id="el-modelo">
-          <option value="eleven_multilingual_v2">Multilingual v2 (mejor calidad)</option>
-          <option value="eleven_v3">Eleven v3 (más expresivo)</option>
-          <option value="eleven_turbo_v2_5">Turbo v2.5 (rápido)</option>
-          <option value="eleven_flash_v2_5">Flash v2.5 (más barato)</option>
-        </select></div>
-      <div style="flex:0 0 auto"><button type="button" id="btn-tts" class="rojo">Generar locución</button></div>
-    </div>
-    <p class="ayuda" id="tts-info"></p>
-    <div class="barra" id="tts-barra" hidden><i></i></div>
-    <div class="estado" id="tts-estado"></div>
-    <div class="segs" id="segs" hidden></div>
-    <div class="fila" style="margin-top:12px;align-items:end">
-      <div><label for="in-voz">O subí una locución ya hecha (MP3/WAV)</label><input type="file" id="in-voz" accept="audio/*"></div>
-      <div style="flex:0 0 auto;display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" id="btn-voz-wav" class="claro">Bajar locución WAV</button>
-        <button type="button" id="btn-voz-mp3" class="claro">Bajar MP3</button>
+    <details style="margin-top:10px"><summary class="sum">Cambiar textos o parada de la miniatura</summary>
+      <div class="fila" style="margin-top:10px">
+        <div><label for="mini-l1">Texto grande</label><input type="text" id="mini-l1" placeholder="Automático"></div>
+        <div><label for="mini-l2">Texto chico</label><input type="text" id="mini-l2" placeholder="Automático"></div>
+        <div><label for="mini-parada">Parada de fondo</label><select id="mini-parada"></select></div>
       </div>
-    </div>
-  </section>
-
-  <section class="paso" id="paso-5">
-    <h2><b>5</b> Música de fondo</h2>
-    <label>Pistas que se alternan (en este orden, con fundido cruzado)</label>
-    <div id="lista-mus" class="segs" style="max-height:none"></div>
-    <div class="fila" style="align-items:end;margin-top:10px">
-      <div><label for="in-musica">Sumar pistas (MP3/WAV/OGG, podés elegir varias)</label><input type="file" id="in-musica" accept="audio/*" multiple></div>
-      <div style="flex:0 0 auto"><button type="button" id="btn-mus-orig" class="claro">Volver a la música del canal</button></div>
-    </div>
-    <div class="fila" style="margin-top:12px">
-      <div><label for="mus-vol">Volumen de la música sola: <span id="mus-vol-v">55%</span></label><input type="range" id="mus-vol" min="10" max="100" value="55" style="width:100%"></div>
-      <div><label for="mus-duck">Volumen bajo la voz: <span id="mus-duck-v">16%</span></label><input type="range" id="mus-duck" min="0" max="50" value="16" style="width:100%"></div>
-    </div>
-    <p class="ayuda" id="mus-info">Cargando la música del canal…</p>
-  </section>
-
-  <section class="paso" id="paso-7">
-    <h2><b>7</b> Miniatura</h2>
-    <div class="fila">
-      <div><label for="mini-l1">Texto grande</label><input type="text" id="mini-l1"></div>
-      <div><label for="mini-l2">Texto chico</label><input type="text" id="mini-l2"></div>
-      <div><label for="mini-parada">Parada de fondo</label><select id="mini-parada"></select></div>
-    </div>
-    <div class="fila" style="margin-top:12px">
-      <button type="button" id="btn-mini" class="rojo" style="flex:0 0 auto">Miniatura YouTube 1280×720</button>
-      <button type="button" id="btn-portada" class="claro" style="flex:0 0 auto">Portada vertical 1080×1920</button>
-    </div>
-    <img id="mini-prev" alt="Vista previa de la miniatura" hidden>
+    </details>
   </section>
 
   <section class="paso" id="paso-8">
-    <h2><b>8</b> Kit SEO para publicar</h2>
-    <button type="button" id="btn-seo" class="rojo">Generar títulos, descripción y etiquetas</button>
-    <div class="kit" id="kit" hidden>
-      <div class="bloque"><div class="top"><label>Títulos para YouTube</label></div><div class="titulos" id="seo-titulos"></div></div>
-      <div class="bloque"><div class="top"><label for="seo-desc">Descripción YouTube (con capítulos)</label><button type="button" data-copiar="seo-desc">Copiar</button></div><textarea id="seo-desc" rows="14"></textarea></div>
-      <div class="bloque"><div class="top"><label for="seo-tags">Palabras clave (etiquetas)</label><button type="button" data-copiar="seo-tags">Copiar</button></div><textarea id="seo-tags" rows="3"></textarea></div>
+    <h2><b>4</b> Para publicar</h2>
+    <div class="kit" id="kit">
+      <div class="bloque"><div class="top"><label>Títulos para YouTube</label></div><div class="titulos" id="seo-titulos"><p class="ayuda">Aparecen solos cuando escribas tus efemérides.</p></div></div>
+      <div class="bloque"><div class="top"><label for="seo-desc">Descripción con emojis y capítulos</label><button type="button" data-copiar="seo-desc">Copiar</button></div><textarea id="seo-desc" rows="12"></textarea></div>
+      <div class="bloque"><div class="top"><label for="seo-tags">Palabras clave</label><button type="button" data-copiar="seo-tags">Copiar</button></div><textarea id="seo-tags" rows="3"></textarea></div>
       <div class="bloque"><div class="top"><label for="seo-hash">Hashtags</label><button type="button" data-copiar="seo-hash">Copiar</button></div><textarea id="seo-hash" rows="2"></textarea></div>
       <div class="bloque"><div class="top"><label for="seo-tiktok">Texto para TikTok</label><button type="button" data-copiar="seo-tiktok">Copiar</button></div><textarea id="seo-tiktok" rows="4"></textarea></div>
       <div class="bloque"><div class="top"><label for="seo-ig">Texto para Instagram</label><button type="button" data-copiar="seo-ig">Copiar</button></div><textarea id="seo-ig" rows="6"></textarea></div>
     </div>
   </section>
+
+  <details class="paso ajustes" id="ajustes">
+    <summary><b>⚙</b> Ajustes (opcional)</summary>
+    <div class="sub">
+      <h3>Fichas detectadas · <span id="fichas-n">0</span></h3>
+      <p class="ayuda">Lo que corrijas acá se respeta aunque después cambies el texto. Rasgos entre paréntesis en protagonistas: <i>Emma Goldman (mujer, anteojos, puño)</i>.</p>
+      <details id="fichas" open><summary class="sum">Ver y corregir fichas</summary>
+        <div id="lista-ev" style="margin-top:10px"></div>
+        <div class="fila" style="margin-top:12px">
+          <button type="button" id="btn-add-ev" class="claro" style="flex:0 0 auto">+ Agregar ficha a mano</button>
+          <button type="button" id="btn-ordenar" class="claro" style="flex:0 0 auto">Ordenar por fecha</button>
+        </div>
+      </details>
+    </div>
+    <div class="sub">
+      <h3>Guion</h3>
+      <div class="leyenda"><span><code>[N]</code> narrador</span><span><code>[V2]</code> segunda voz</span><span><code>[C]</code> citas</span></div>
+      <label for="guion" class="sr">Guion</label>
+      <textarea id="guion" spellcheck="true"></textarea>
+      <p class="ayuda" id="guion-info"></p>
+      <div class="fila" style="margin-top:8px">
+        <button type="button" id="btn-guion" class="claro" style="flex:0 0 auto">Volver al guion automático</button>
+        <button type="button" id="btn-pedido" class="claro" style="flex:0 0 auto">Copiar pedido para una IA</button>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>Voces de ElevenLabs</h3>
+      <div class="fila">
+        <div><label for="voz-N">Narrador [N]</label><select id="voz-N"></select></div>
+        <div><label for="voz-V2">Segunda voz [V2]</label><select id="voz-V2"></select></div>
+        <div><label for="voz-C">Citas [C]</label><select id="voz-C"></select></div>
+      </div>
+      <div class="fila" style="margin-top:10px;align-items:end">
+        <div><label for="el-modelo">Modelo</label>
+          <select id="el-modelo">
+            <option value="eleven_multilingual_v2">Multilingual v2 (mejor calidad)</option>
+            <option value="eleven_v3">Eleven v3 (más expresivo)</option>
+            <option value="eleven_turbo_v2_5">Turbo v2.5 (rápido)</option>
+            <option value="eleven_flash_v2_5">Flash v2.5 (más barato)</option>
+          </select></div>
+        <div style="flex:2 1 220px"><label for="el-key">Clave de API</label><input type="password" id="el-key" autocomplete="off"></div>
+        <div style="flex:0 0 auto"><button type="button" id="btn-voces" class="claro">Probar conexión</button></div>
+      </div>
+      <div class="segs" id="segs" hidden></div>
+      <div class="fila" style="margin-top:10px;align-items:end">
+        <div><label for="in-voz">O usá una locución ya hecha (MP3/WAV)</label><input type="file" id="in-voz" accept="audio/*"></div>
+        <div style="flex:0 0 auto;display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" id="btn-voz-wav" class="claro">Bajar locución WAV</button>
+          <button type="button" id="btn-voz-mp3" class="claro">Bajar MP3</button>
+        </div>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>Música (se alternan en orden)</h3>
+      <div id="lista-mus" class="segs" style="max-height:none"></div>
+      <div class="fila" style="align-items:end;margin-top:10px">
+        <div><label for="in-musica">Sumar pistas</label><input type="file" id="in-musica" accept="audio/*" multiple></div>
+        <div style="flex:0 0 auto"><button type="button" id="btn-mus-orig" class="claro">Volver a la música del canal</button></div>
+      </div>
+      <div class="fila" style="margin-top:10px">
+        <div><label for="mus-vol">Música sola: <span id="mus-vol-v">55%</span></label><input type="range" id="mus-vol" min="10" max="100" value="55" style="width:100%"></div>
+        <div><label for="mus-duck">Bajo la voz: <span id="mus-duck-v">16%</span></label><input type="range" id="mus-duck" min="0" max="50" value="16" style="width:100%"></div>
+      </div>
+      <p class="ayuda" id="mus-info"></p>
+    </div>
+    <div class="sub">
+      <h3>Efectos y grabación</h3>
+      <div class="fila" style="align-items:center">
+        <label class="check"><input type="checkbox" id="op-subs" checked> Subtítulos</label>
+        <label class="check"><input type="checkbox" id="op-cine" checked> Franjas de cine</label>
+        <label class="check"><input type="checkbox" id="op-pelicula" checked> Polvo y rayones</label>
+        <label class="check"><input type="checkbox" id="op-cenizas" checked> Papeles en el aire</label>
+        <label class="check"><input type="checkbox" id="op-vozprueba" checked> Voz del navegador en la muestra</label>
+        <label class="check"><input type="checkbox" id="op-monitor" checked> Escuchar mientras graba</label>
+      </div>
+      <div class="fila" style="margin-top:10px">
+        <div><label>Modo de grabación</label>
+          <div class="segmentado">
+            <input type="radio" name="modo" id="modo-real" value="real" checked><label for="modo-real">Tiempo real</label>
+            <input type="radio" name="modo" id="modo-cuadro" value="cuadro"><label for="modo-cuadro">Cuadro a cuadro</label>
+          </div></div>
+        <div style="flex:0 1 160px"><label for="op-res">Resolución</label><select id="op-res"><option value="1080">1080p</option><option value="720">720p (PC lenta)</option></select></div>
+      </div>
+      <p class="ayuda" id="modo-ayuda"></p>
+    </div>
+    <div class="sub">
+      <h3>Proyecto</h3>
+      <div class="fila">
+        <button type="button" id="btn-guardar" class="claro" style="flex:0 0 auto">Guardar proyecto</button>
+        <button type="button" id="btn-abrir" class="claro" style="flex:0 0 auto">Abrir proyecto</button>
+        <button type="button" id="btn-nuevo" class="claro" style="flex:0 0 auto">Empezar de cero</button>
+        <input type="file" id="in-proyecto" accept=".json,application/json" hidden>
+      </div>
+    </div>
+  </details>
 </div>
 
 <div class="col">
   <section class="paso pantalla" id="paso-6">
-    <h2><b>6</b> Video</h2>
+    <h2><b>2</b> Tu video</h2>
     <div class="marco"><canvas id="vista" width="640" height="360"></canvas></div>
     <div class="transporte">
       <button type="button" id="btn-play" class="rojo" aria-label="Reproducir">▶ Ver</button>
@@ -270,21 +284,14 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
       <span class="tiempo" id="t-label">0:00 / 0:00</span>
     </div>
     <p class="ayuda" id="tl-info"></p>
-    <label class="check" style="margin-top:6px"><input type="checkbox" id="op-vozprueba" checked> En la muestra, leer con la voz del navegador lo que todavía no tiene locución</label>
-    <div class="fila" style="margin-top:14px">
-      <div><label>Exportación</label>
-        <div class="segmentado">
-          <input type="radio" name="modo" id="modo-real" value="real" checked><label for="modo-real">Tiempo real (rápido)</label>
-          <input type="radio" name="modo" id="modo-cuadro" value="cuadro"><label for="modo-cuadro">Cuadro a cuadro (máxima calidad)</label>
-        </div></div>
-      <div style="flex:0 1 150px"><label for="op-res">Resolución</label><select id="op-res"><option value="1080">1080p</option><option value="720">720p (PC lenta)</option></select></div>
+    <div class="acciones-grandes">
+      <button type="button" id="btn-tts" class="rojo grande">🎙 Ponerle la voz</button>
+      <button type="button" id="btn-export" class="grande">● Grabar video</button>
+      <button type="button" id="btn-cancel" class="claro" hidden>Cancelar</button>
     </div>
-    <p class="ayuda" id="modo-ayuda"></p>
-    <label class="check"><input type="checkbox" id="op-monitor" checked> Escuchar el audio mientras graba</label>
-    <div class="fila" style="margin-top:10px">
-      <button type="button" id="btn-export" class="rojo" style="flex:0 0 auto">● Grabar video</button>
-      <button type="button" id="btn-cancel" class="claro" style="flex:0 0 auto" hidden>Cancelar</button>
-    </div>
+    <p class="ayuda" id="tts-info"></p>
+    <div class="barra" id="tts-barra" hidden><i></i></div>
+    <div class="estado" id="tts-estado"></div>
     <div class="barra" id="exp-barra" hidden><i></i></div>
     <div class="estado" id="exp-estado"></div>
   </section>
@@ -4164,6 +4171,7 @@ const state={
   titulo:'', fecha:'', duracion:5, formato:'16:9', subs:true,
   events:[], guion:'', voces:{N:'',V2:'',C:''}, modelo:'eleven_multilingual_v2',
   musVol:.55, musDuck:.16,
+  tituloAuto:true, guionManual:false, texto:'',
   camara:'dinamico', cine:true, pelicula:true, cenizas:true, modo:'real', res:'1080', monitor:true, vozPrueba:true
 };
 const audio={ctx:null, cache:new Map(), propia:null, propiaNombre:'', musicas:[], mix:null, mixKey:''};
@@ -4207,9 +4215,10 @@ function buscarFecha(t){
   f.txt=[f.d?f.d+' de':'',f.m?MES_NOM[f.m]+(f.y?' de':''):'',f.y||''].filter(Boolean).join(' ');f.ini=ini;f.fin=fin;return f;
 }
 const NO_PERSONA=['Semana Trágica','Escuela Moderna','Buenos Aires','Nueva York','Guerra Civil','Primera Guerra Mundial','Segunda Guerra Mundial','Santa Fe','San Pablo','Los Ángeles','Río de la Plata','Estados Unidos','Reino Unido','Primero de Mayo','Comuna de París','Centro Ferrer','Patagonia Rebelde'];
+const VERBOS_INICIO=['muere','mueren','nace','nacen','fusilan','fusila','asesinan','asesina','ahorcan','ejecutan','detienen','detiene','encarcelan','liberan','funda','fundan','abre','abren','publica','publican','llega','llegan','estalla','comienza','termina','cae','gana','pierde','escribe','sale','vuelve','viaja','huye','renuncia','declara','proclaman','proclama','organiza','organizan','convoca','convocan','lidera','encabeza','impulsa','impulsan','inaugura','crea','crean','matan','mata','desaparece','secuestran','condenan','juzgan','exilian','expulsan','reprimen','marchan','toman','ocupan','huelga','masacre','muerte','nacimiento','fusilamiento','asesinato'];
 const PALABRAS_INICIO=['El','La','Los','Las','En','Un','Una','Según','Desde','Hoy','Durante','Tras','Con','Por','Para','Sin','Ese','Esa','Aquel','Aquella','Al','Del','Cuando','Mientras','Allí','Ahí'];
 function detectarLugar(t){
-  const rx=/\ben\s+((?:(?:el|la|los|las)\s+)?(?:[a-záéíóúñ]+\s+(?:(?:de|del)\s+)?)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+(?:\s+(?:(?:de|del|y)\s+)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+)*)/gu;let m;const out=[];
+  const rx=/\b[Ee]n\s+((?:(?:el|la|los|las)\s+)?(?:[a-záéíóúñ]+\s+(?:(?:de|del)\s+)?)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+(?:\s+(?:(?:de|del|y)\s+)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+)*)/gu;let m;const out=[];
   while(m=rx.exec(t)){let l=m[1].replace(/^(el|la|los|las)\s+/,'');if(new RegExp(`^(${MES_RX})`,'i').test(l))continue;l=l.charAt(0).toUpperCase()+l.slice(1);out.push(l)}
   if(!out.length){const d=t.match(/\bde\s+([A-ZÁÉÍÓÚÑ][a-zà-ÿ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-zà-ÿ]+)?)\b/u);return d&&!new RegExp(`^(${MES_RX})`,'i').test(d[1])&&!NO_PERSONA.includes(d[1])?d[1]:''}
   // si después del lugar viene ", Ciudad", sumarla: «castillo de Montjuïc, Barcelona»
@@ -4220,7 +4229,7 @@ function detectarLugar(t){
 function detectarPersonas(t,lugar){
   const rx=/([A-ZÁÉÍÓÚÑÀ-Þ][a-zà-ÿ'’-]+(?:\s+(?:(?:de|del|di|da|i|van|von|la|le)\s+)?[A-ZÁÉÍÓÚÑÀ-Þ][a-zà-ÿ'’-]+)+)/gu;let m;const out=[];
   while(m=rx.exec(t)){let c=m[1];let antes=t.slice(Math.max(0,m.index-6),m.index).toLowerCase();
-    let tok=c.split(/\s+/);while(tok.length&&PALABRAS_INICIO.includes(tok[0])){tok.shift();antes=' x '}
+    let tok=c.split(/\s+/);while(tok.length&&(PALABRAS_INICIO.includes(tok[0])||VERBOS_INICIO.includes(sinAcentos(tok[0]).toLowerCase()))){tok.shift();antes=' x '}
     while(tok.length&&/^(de|del|di|da|i|van|von|la|le)$/.test(tok[0]))tok.shift();
     c=tok.join(' ');if(tok.filter(w=>/^[A-ZÁÉÍÓÚÑÀ-Þ]/.test(w)).length<2)continue;
     if(/\b(el|la|los|las|en|del|al|un|una)\s+$/.test(antes))continue;
@@ -4231,7 +4240,7 @@ function detectarPersonas(t,lugar){
   return [...new Set(out)].filter((c,i,a)=>!a.some(o=>o!==c&&o.includes(c)));
 }
 function tituloDe(txt,lugar){
-  let t=txt.replace(/[«"“][^»"”]*[»"”]/g,'').trim();t=t.split(/(?<=[.!?…])\s+/)[0]||t;
+  let t=txt.replace(/[«"“][^»"”]*[»"”]/g,'').trim().replace(/^En\s+(?:(?:el|la|los|las)\s+)?[^,]{2,45},\s*/,'');t=t.split(/(?<=[.!?…])\s+/)[0]||t;
   t=t.split(/[:;]/)[0];const w=t.split(/\s+/);
   if(w.length>9){const c=t.search(/,\s/);if(c>0&&t.slice(0,c).split(/\s+/).length>=4)t=t.slice(0,c)}
   t=t.replace(/\s+en\s+(?:(?:el|la|los|las)\s+)?(?:[a-záéíóúñ]+\s+(?:(?:de|del)\s+)?)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+(?:\s+(?:(?:de|del|y)\s+)?[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+)*(?:,\s+[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+(?:\s+[A-ZÁÉÍÓÚÑ][\wÀ-ÿ'’-]+)?(?=[,.;:]|$))?/u,'');
@@ -4274,7 +4283,7 @@ function leerTexto(forzar){
   const manuales=state.events.filter(e=>e.editado&&(!e.src||srcs.has(e.src)));
   const msrc=new Set(manuales.map(e=>e.src).filter(Boolean));
   state.events=[...manuales,...nuevas.filter(e=>!msrc.has(e.src))].sort((a,b)=>claveFecha(a)-claveFecha(b));
-  renderEventos();guardarLocal();mundoLuego();infoTexto();
+  renderEventos();infoTexto();
 }
 function infoTexto(){
   const evs=state.events;const n=evs.length;$('#fichas-n').textContent=n+(n===1?' ficha':' fichas');
@@ -4444,7 +4453,7 @@ function generarGuion(){
   let falta=objetivo-palabras(base.replace(/\[\w+\]|#.*$/gm,''));
   // reparto del relleno: primero detalles, luego reflexiones, como máximo 5 frases por parada
   const add=bloques.map(()=>[]);
-  const maxR=bloques.length<=2?9:5;for(let ronda=0;ronda<maxR&&falta>12;ronda++){
+  const maxR=clamp(Math.ceil(falta/(22*bloques.length)),5,18);for(let ronda=0;ronda<maxR&&falta>12;ronda++){
     for(let k=0;k<bloques.length&&falta>12;k++){
       const b=bloques[k];const f=b.extra.shift()||reflex();add[k].push(f);falta-=palabras(f)}
   }
@@ -5133,57 +5142,74 @@ function wav(buf){const nc=buf.numberOfChannels,sr=buf.sampleRate,n=buf.length;c
    ELEVENLABS
    ============================================================ */
 const EL='https://api.elevenlabs.io';
+const CLAVE_EL='sk_d719b15bc56ecfab23a70c03529a68f26be5d7ed07552fd3';
+const VOCES_CUENTA=[
+  {id:'21G73IDZjjz51HSwJh5s',nombre:'Mario p',cat:'cloned'},
+  {id:'YmwwQQdY9i3i0hBWn1SD',nombre:'Octavio (grave, mayor)',cat:''},
+  {id:'DdKbXdRlBmj7Ty7N0FVr',nombre:'Juanjo (grave)',cat:''},
+  {id:'DZlhGG8Tll3rs5TbKAe2',nombre:'Jorge',cat:''},
+  {id:'icze3UzEOxn2jtNGx4ZM',nombre:'Amanda (mujer)',cat:''},
+  {id:'aviXFY7Zd7b9DnCUwaCh',nombre:'Maicolangel',cat:''},
+  {id:'D09EpJbk4um1HKSpeTSc',nombre:'Agustín (enérgico)',cat:''}];
+const VOZ_DEF={N:'21G73IDZjjz51HSwJh5s',V2:'YmwwQQdY9i3i0hBWn1SD',C:'DdKbXdRlBmj7Ty7N0FVr'};
 function estadoTTS(m,err){const e=$('#tts-estado');e.textContent=m||'';e.classList.toggle('error',!!err)}
-async function cargarVoces(){
-  const key=$('#el-key').value.trim();if(!key){estadoTTS('Pegá tu clave de API de ElevenLabs (Perfil → API Keys).',true);return}
-  estadoTTS('Conectando con ElevenLabs…');
+function enVistaPrevia(){try{return window.top!==window.self}catch(e){return true}}
+function errorRed(){
+  if(enVistaPrevia())return'No hay conexión porque el editor está abierto dentro de una vista previa. Descargá el archivo y abrilo con doble clic en Chrome o Edge.';
+  return'No se pudo llegar a ElevenLabs. Revisá que la compu tenga internet y probá de nuevo.';
+}
+async function leerError(r){let m='';try{const j=await r.json();const d=j.detail||j;m=(d.message||d.status||(typeof d==='string'?d:''))}catch(e){}return m}
+function claveActual(){return ($('#el-key').value||'').trim()||CLAVE_EL}
+async function cargarVoces(silencioso){
+  const key=claveActual();if(!silencioso)estadoTTS('Probando la conexión con ElevenLabs…');
   try{const r=await fetch(EL+'/v1/voices',{headers:{'xi-api-key':key}});
-    if(r.status===401)throw new Error('La clave no es válida o no tiene permiso para leer voces.');
-    if(!r.ok)throw new Error('ElevenLabs respondió '+r.status+'.');
-    const j=await r.json();voicesList=(j.voices||[]).map(v=>({id:v.voice_id,nombre:v.name,cat:v.category||''})).sort((a,b)=>(a.cat==='cloned'?-1:0)-(b.cat==='cloned'?-1:0)||a.nombre.localeCompare(b.nombre));
-    llenarVoces();estadoTTS(`Listo: ${voicesList.length} voces cargadas.`);
-    if($('#el-recordar').checked)lsSet('ae_key',key);
-  }catch(e){estadoTTS(e.message.includes('fetch')?'No se pudo conectar. Revisá tu conexión a internet.':e.message,true)}
+    if(r.status===401){const m=await leerError(r);
+      if(/permission|permiso|voices_read/i.test(m)){if(!silencioso)estadoTTS('La clave conecta, pero no tiene permiso para listar voces. No importa: tus voces ya están cargadas y para ponerle la voz alcanza con el permiso «Text to Speech».');return true}
+      throw new Error('ElevenLabs no acepta la clave'+(m?': '+m:'.')+' Revisala en ElevenLabs → Developers → API Keys.')}
+    if(!r.ok)throw new Error('ElevenLabs respondió con error '+r.status+'.');
+    const j=await r.json();const vistas=new Set(VOCES_CUENTA.map(v=>v.id));
+    voicesList=[...VOCES_CUENTA,...(j.voices||[]).filter(v=>!vistas.has(v.voice_id)).map(v=>({id:v.voice_id,nombre:v.name,cat:v.category||''}))];
+    llenarVoces();if(!silencioso)estadoTTS(`Conectado: ${voicesList.length} voces disponibles. Narrador: Mario p.`);return true;
+  }catch(e){if(!silencioso)estadoTTS(e instanceof TypeError?errorRed():e.message,true);return false}
 }
 function llenarVoces(){
-  for(const rol of['N','V2','C']){const s=$('#voz-'+rol);const prev=state.voces[rol];
-    s.innerHTML=(rol==='N'?'':'<option value="">Igual que el narrador</option>')+voicesList.map(v=>`<option value="${esc(v.id)}">${esc(v.nombre)}${v.cat==='cloned'?' (clonada)':''}</option>`).join('');
-    if(prev&&voicesList.some(v=>v.id===prev))s.value=prev;
-    else if(rol==='N'){const m=voicesList.find(v=>/mario/i.test(v.nombre))||voicesList[0];if(m)s.value=m.id}
-    else s.value='';
-    state.voces[rol]=s.value}
-  invalidar();infoTTS();
+  if(!voicesList.length)voicesList=[...VOCES_CUENTA];
+  for(const rol of['N','V2','C']){const s=$('#voz-'+rol);const prev=state.voces[rol]||VOZ_DEF[rol];
+    s.innerHTML=voicesList.map(v=>`<option value="${esc(v.id)}">${esc(v.nombre)}${v.cat==='cloned'?' (tu voz clonada)':''}</option>`).join('');
+    s.value=voicesList.some(v=>v.id===prev)?prev:VOZ_DEF[rol];state.voces[rol]=s.value}
 }
 function pendientes(){if(audio.propia)return[];return parseGuion(state.guion).filter(s=>!audioDeSeg(s))}
 function infoTTS(){
   const segs=parseGuion(state.guion);const pend=pendientes();const ch=pend.reduce((a,s)=>a+s.texto.length,0);
-  $('#tts-info').textContent=audio.propia?`Usando tu locución subida (${fmt(audio.propia.duration)}). Quitala para volver a ElevenLabs.`:
-    segs.length?`${segs.length} fragmentos · ${segs.length-pend.length} con audio · faltan ${pend.length} (${ch.toLocaleString('es-AR')} caracteres ≈ ${ch.toLocaleString('es-AR')} créditos)`:'Primero generá o escribí el guion.';
+  const nombre=(voicesList.find(v=>v.id===state.voces.N)||{}).nombre||'Mario p';
+  $('#tts-info').textContent=audio.propia?`Con tu locución subida (${fmt(audio.propia.duration)}).`:
+    !segs.length?'':pend.length?`La voz la pone ${nombre}: ${segs.length-pend.length} de ${segs.length} partes listas. Faltan ${ch.toLocaleString('es-AR')} caracteres (≈ ${ch.toLocaleString('es-AR')} créditos).`:`Voz completa: ${segs.length} partes con la voz de ${nombre}. Ya podés grabar.`;
+  const b=$('#btn-tts');if(b)b.textContent=pend.length&&!audio.propia?(segs.length-pend.length?'🎙 Completar la voz':'🎙 Ponerle la voz'):'✓ Voz lista';
   const box=$('#segs');box.hidden=!segs.length||!!audio.propia;
-  box.innerHTML=segs.map((s,i)=>`<div><span class="${audioDeSeg(s)?'ok':'no'}">${audioDeSeg(s)?'●':'○'}</span><b>${s.voz}</b><span>${esc(s.texto.slice(0,90))}</span></div>`).join('');
+  box.innerHTML=segs.map(s=>`<div><span class="${audioDeSeg(s)?'ok':'no'}">${audioDeSeg(s)?'●':'○'}</span><b>${s.voz}</b><span>${esc(s.texto.slice(0,90))}</span></div>`).join('');
 }
 async function generarTTS(){
-  const key=$('#el-key').value.trim();
-  if(!key){estadoTTS('Falta la clave de API.',true);return}
-  if(!state.voces.N){estadoTTS('Elegí la voz del narrador (Cargar mis voces).',true);return}
-  if(audio.propia){estadoTTS('Estás usando una locución subida. Quitala (dejá vacío el archivo) para generar con ElevenLabs.',true);return}
-  const pend=pendientes();if(!pend.length){estadoTTS('Todos los fragmentos ya tienen audio.');return}
-  const ac=ctxAudio();const barra=$('#tts-barra');barra.hidden=false;const btn=$('#btn-tts');btn.disabled=true;
+  const key=claveActual();
+  if(audio.propia){estadoTTS('Estás usando una locución subida en Ajustes. Quitala para generar con ElevenLabs.',true);return}
+  if(!parseGuion(state.guion).length){estadoTTS('Primero escribí tus efemérides.',true);return}
+  const pend=pendientes();if(!pend.length){estadoTTS('La voz ya está completa. Podés grabar el video.');return}
+  pausa();const ac=ctxAudio();const barra=$('#tts-barra');barra.hidden=false;const btn=$('#btn-tts');btn.disabled=true;
   let hechos=0;
   try{
     for(const s of pend){
-      estadoTTS(`Generando ${hechos+1} de ${pend.length}: «${s.texto.slice(0,50)}…»`);
+      estadoTTS(`Poniendo la voz: parte ${hechos+1} de ${pend.length}…`);
       const voz=vozId(s.voz);const body={text:s.texto,model_id:state.modelo};
       if(state.modelo!=='eleven_v3')body.voice_settings={stability:s.voz==='C'?.35:.5,similarity_boost:.8,style:s.voz==='V2'?.35:.2,use_speaker_boost:true};
-      const r=await fetch(`${EL}/v1/text-to-speech/${encodeURIComponent(voz)}?output_format=mp3_44100_128`,{method:'POST',headers:{'xi-api-key':key,'Content-Type':'application/json',Accept:'audio/mpeg'},body:JSON.stringify(body)});
-      if(!r.ok){let m='';try{const j=await r.json();m=j.detail&&(j.detail.message||j.detail.status||JSON.stringify(j.detail))}catch(e){}
-        throw new Error(r.status===401?'Clave inválida.':r.status===429?'ElevenLabs está limitando pedidos. Esperá un minuto y seguí: lo ya generado no se pierde.':(m||'Error '+r.status)+'. Lo ya generado se conserva.')}
+      let r;try{r=await fetch(`${EL}/v1/text-to-speech/${encodeURIComponent(voz)}?output_format=mp3_44100_128`,{method:'POST',headers:{'xi-api-key':key,'Content-Type':'application/json',Accept:'audio/mpeg'},body:JSON.stringify(body)})}
+      catch(e){throw new Error(errorRed())}
+      if(!r.ok){const m=await leerError(r);
+        throw new Error(r.status===401?'ElevenLabs no acepta la clave'+(m?': '+m:'')+'. Revisala en Ajustes → Voces.':r.status===429?'ElevenLabs está limitando pedidos. Esperá un minuto y tocá de nuevo: lo ya generado no se pierde.':/quota|credit/i.test(m)?'No quedan créditos suficientes en ElevenLabs. Lo ya generado se conserva.':(m||'Error '+r.status)+'. Lo ya generado se conserva.')}
       const mp3=await r.arrayBuffer();const buffer=await ac.decodeAudioData(mp3.slice(0));
       audio.cache.set(voz+'|'+state.modelo+'|'+s.texto,{buffer,mp3});
       hechos++;barra.firstElementChild.style.width=(hechos/pend.length*100)+'%';invalidar();infoTTS();
     }
-    estadoTTS(`Locución lista: ${hechos} fragmentos generados. Duración del video: ${fmt(tl().total)}.`);
-  }catch(e){estadoTTS(e.message.includes('Failed to fetch')?'Se cortó la conexión con ElevenLabs. Lo generado se conserva; volvé a tocar «Generar locución».':e.message,true)}
+    estadoTTS(`Voz lista. El video dura ${fmt(tl().total)}. Tocá ▶ Ver para escucharlo o ● Grabar video.`);
+  }catch(e){estadoTTS(e.message,true)}
   finally{btn.disabled=false;barra.hidden=true;invalidar();infoTTS();dibujarVista()}
 }
 async function bajarVozWav(){
@@ -5305,11 +5331,12 @@ async function cargarMusicaCanal(){
   const out=[];for(const m of M){try{const bin=atob(m.datos);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);out.push({nombre:m.nombre,buffer:await ctxAudio().decodeAudioData(u.buffer)})}catch(e){console.error(e)}}
   audio.musicas=out;renderMusica();
 }
-function poblarParadasMini(){const s=$('#mini-parada');const v=s.value;s.innerHTML=state.events.map((e,i)=>`<option value="${i}">${i+1}. ${esc(e.titulo||e.fecha||'Parada')}</option>`).join('');if(v&&+v<state.events.length)s.value=v}
+function paradaPrincipal(){const f=parseFecha(state.fecha||'');const k=state.events.findIndex(e=>{const g=parseFecha(e.fecha);return f.mes&&g.mes===f.mes&&(!f.dia||g.dia===f.dia)});return k>=0?k:0}
+function poblarParadasMini(){const s=$('#mini-parada');const v=s.value;s.innerHTML='<option value="">Automática</option>'+state.events.map((e,i)=>`<option value="${i}">${i+1}. ${esc(e.titulo||e.fecha||'Parada')}</option>`).join('');if(v&&+v<state.events.length)s.value=v}
 function miniatura(W,H){
   const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
   const k=W+'x'+H;R3.setSize(W,H,false);ajustarCamara(W,H);tamActual='';
-  const i=+($('#mini-parada').value||0);const pr=mundo.paradas[clamp(i,0,mundo.paradas.length-1)];
+  const i=$('#mini-parada').value!==''?+$('#mini-parada').value:paradaPrincipal();const pr=mundo.paradas[clamp(i,0,mundo.paradas.length-1)];
   const vertical0=H>W;let pose;
   if(pr.nP){const e=pr.est[Math.min(pr.nP-1,pr.nP>2?1:0)].position;
     pose=vertical0?{p:aW(pr,e.x+.5,1.0,e.z+6.4),l:aW(pr,e.x,3.4,e.z)}:{p:aW(pr,e.x+.9,.9,e.z+6.3),l:aW(pr,e.x-2.5,3.5,e.z)}}
@@ -5413,42 +5440,56 @@ function renderEventos(){
 }
 let tMundo=null;
 function mundoLuego(){clearTimeout(tMundo);tMundo=setTimeout(()=>{construirMundo();invalidar();dibujarVista()},450)}
-function guardarLocal(){lsSet('ae_proyecto',JSON.stringify(proyecto()))}
-function proyecto(){return{v:3,texto:state.texto||'',camara:state.camara,cine:state.cine,pelicula:state.pelicula,cenizas:state.cenizas,modo:state.modo,res:state.res,monitor:state.monitor,vozPrueba:state.vozPrueba,titulo:state.titulo,fecha:state.fecha,duracion:state.duracion,formato:state.formato,subs:state.subs,events:state.events,guion:state.guion,voces:state.voces,modelo:state.modelo,musVol:state.musVol,musDuck:state.musDuck}}
+const CLAVE_LS='ae4_proyecto';
+function guardarLocal(){lsSet(CLAVE_LS,JSON.stringify(proyecto()))}
+function proyecto(){return{v:4,texto:state.texto||'',tituloAuto:state.tituloAuto,guionManual:state.guionManual,camara:state.camara,cine:state.cine,pelicula:state.pelicula,cenizas:state.cenizas,modo:state.modo,res:state.res,monitor:state.monitor,vozPrueba:state.vozPrueba,titulo:state.titulo,fecha:state.fecha,duracion:state.duracion,formato:state.formato,subs:state.subs,events:state.events,guion:state.guion,voces:state.voces,modelo:state.modelo,musVol:state.musVol,musDuck:state.musDuck}}
+function hoyTexto(){const h=new Date();return h.getDate()+' de '+MES_NOM[h.getMonth()+1]}
 function cargarProyecto(p){
-  Object.assign(state,{texto:p.texto||'',camara:p.camara||'dinamico',cine:p.cine!==false,pelicula:p.pelicula!==false,cenizas:p.cenizas!==false,modo:p.modo||'real',res:p.res||'1080',monitor:p.monitor!==false,vozPrueba:p.vozPrueba!==false,titulo:p.titulo||'',fecha:p.fecha||'',duracion:+p.duracion||5,formato:p.formato||'16:9',subs:p.subs!==false,events:(p.events||[]).map(e=>({...nuevoEvento(),...e})),guion:p.guion||'',voces:p.voces||{N:'',V2:'',C:''},modelo:p.modelo||'eleven_multilingual_v2',musVol:p.musVol??.55,musDuck:p.musDuck??.16});
-  $('#ep-titulo').value=state.titulo;$('#ep-fecha').value=state.fecha;
+  Object.assign(state,{texto:p.texto||'',tituloAuto:p.tituloAuto!==false,guionManual:!!p.guionManual,camara:p.camara||'dinamico',cine:p.cine!==false,pelicula:p.pelicula!==false,cenizas:p.cenizas!==false,modo:p.modo||'real',res:p.res||'1080',monitor:p.monitor!==false,vozPrueba:p.vozPrueba!==false,titulo:p.titulo||'',fecha:p.fecha||hoyTexto(),duracion:+p.duracion||5,formato:p.formato||'16:9',subs:p.subs!==false,events:(p.events||[]).map(e=>({...nuevoEvento(),...e})),guion:p.guion||'',voces:{...VOZ_DEF,...(p.voces||{})},modelo:p.modelo||'eleven_multilingual_v2',musVol:p.musVol??.55,musDuck:p.musDuck??.16});
+  $('#ef-texto').value=state.texto;textoLeido=state.texto;
+  $('#ep-titulo').value=state.tituloAuto?'':state.titulo;$('#ep-titulo').placeholder=state.titulo||'Se completa solo';$('#ep-fecha').value=state.fecha;
   ($('#dur-'+state.duracion)||$('#dur-5')).checked=true;$$('input[name=fmt]').forEach(r=>r.checked=r.value===state.formato);
-  $('#op-subs').checked=state.subs;
   ($('#cam-'+state.camara)||$('#cam-dinamico')).checked=true;$('#modo-'+state.modo).checked=true;$('#op-res').value=state.res;
-  $('#op-cine').checked=state.cine;$('#op-pelicula').checked=state.pelicula;$('#op-cenizas').checked=state.cenizas;$('#op-monitor').checked=state.monitor;$('#op-vozprueba').checked=state.vozPrueba;ayudaModo();$('#guion').value=state.guion;$('#el-modelo').value=state.modelo;
-  $('#mus-vol').value=Math.round(state.musVol*100);$('#mus-duck').value=Math.round(state.musDuck*100);
-  $('#mus-vol-v').textContent=$('#mus-vol').value+'%';$('#mus-duck-v').textContent=$('#mus-duck').value+'%';
-  $('#ef-texto').value=state.texto||'';textoLeido=state.texto||'';
-  renderEventos();infoTexto();construirMundo();invalidar();infoGuion();infoTTS();dibujarVista();
+  for(const[id,k]of[['op-subs','subs'],['op-cine','cine'],['op-pelicula','pelicula'],['op-cenizas','cenizas'],['op-monitor','monitor'],['op-vozprueba','vozPrueba']])$('#'+id).checked=state[k];
+  $('#guion').value=state.guion;$('#el-modelo').value=state.modelo;
+  $('#mus-vol').value=Math.round(state.musVol*100);$('#mus-duck').value=Math.round(state.musDuck*100);$('#mus-vol-v').textContent=$('#mus-vol').value+'%';$('#mus-duck-v').textContent=$('#mus-duck').value+'%';
+  llenarVoces();
 }
 function tituloAuto(evs){
   if(evs.length===1)return evs[0].titulo||evs[0].fecha;
   const prot={};evs.forEach(e=>parseProtagonistas(e.protagonistas).forEach(p=>prot[p.nombre]=(prot[p.nombre]||0)+1));
-  const top=Object.entries(prot).sort((a,b)=>b[1]-a[1])[0];const an=evs.map(e=>parseFecha(e.fecha).anio).filter(Boolean);
-  const rango=an.length>1&&an[0]!==an[an.length-1]?` (${an[0]}–${an[an.length-1]})`:'';
-  return (top&&top[1]>1?`${top[0]}: ${evs.length} fechas de memoria`:`${evs[0].titulo} y ${evs.length-1} ${evs.length>2?'fechas':'fecha'} más`)+rango;
+  const top=Object.entries(prot).sort((a,b)=>b[1]-a[1])[0];const an=[...new Set(evs.map(e=>parseFecha(e.fecha).anio).filter(Boolean))];
+  const rango=an.length>1?` (${an[0]}–${an[an.length-1]})`:an.length?` (${an[0]})`:'';
+  if(top&&top[1]>1)return `${top[0]}: ${evs.length} fechas de memoria${rango}`;
+  const k=paradaPrincipal();const ppal=state.events[k]||evs[0];return (ppal.titulo||evs[0].titulo)+rango;
 }
 function estadoTodo(m,err){const e=$('#todo-estado');e.textContent=m||'';e.classList.toggle('error',!!err)}
-async function generarTodo(){
-  leerTexto();state.events.sort((a,b)=>claveFecha(a)-claveFecha(b));renderEventos();
-  if(!state.fecha.trim()){const h=new Date();state.fecha=h.getDate()+' de '+MES_NOM[h.getMonth()+1];$('#ep-fecha').value=state.fecha}
-  const evs=state.events.filter(e=>e.titulo||e.descripcion||e.fecha);
-  if(!evs.length){estadoTodo('Escribí al menos una efeméride en el paso 1: la fecha y qué pasó.',true);$('#ef-texto').focus();return}
-  if(!state.titulo.trim()){state.titulo=tituloAuto(evs);$('#ep-titulo').value=state.titulo}
-  state.guion=generarGuion();$('#guion').value=state.guion;
-  construirMundo();invalidar();infoGuion();infoTTS();guardarLocal();
-  try{generarSEO()}catch(e){console.error(e)}
-  try{const c=miniatura(1280,720);$('#mini-prev').src=c.toDataURL('image/jpeg',.85);$('#mini-prev').hidden=false;tamActual=''}catch(e){console.error(e)}
-  const T=tl();const w=parseGuion(state.guion).reduce((a,s)=>a+palabras(s.texto),0);
-  estadoTodo(`Guion listo: ${w} palabras, ${evs.length} parada${evs.length>1?'s':''}, video de ${fmt(T.total)}.`+(generarGuion.resumido?` Para que entre en ${state.duracion} minutos resumí algunas descripciones: revisalo en el paso 3.`:'')+(T.total>state.duracion*60+25?` Aun así se pasa de ${state.duracion} minutos: probá con menos paradas o más duración.`:'')+' La muestra ya está corriendo; el kit SEO y la miniatura también están listos más abajo.');
-  $('#paso-6').scrollIntoView({behavior:'smooth',block:'start'});
-  pausa();tPlay=0;await play();
+let firmaMundo='',tAct=null,ocupado=false;
+function actualizarLuego(ms=900){clearTimeout(tAct);tAct=setTimeout(actualizarTodo,ms)}
+// el corazón del editor: cada cambio rehace fichas, guion, 3D, miniatura y textos para publicar
+function actualizarTodo(){
+  if(ocupado||grabandoReal){actualizarLuego(600);return}ocupado=true;
+  try{
+    leerTexto();
+    const evs=state.events.filter(e=>e.titulo||e.descripcion||e.fecha);
+    if(state.tituloAuto)state.titulo=evs.length?tituloAuto(evs):'';
+    $('#ep-titulo').placeholder=state.titulo||'Se completa solo';
+    if(!state.guionManual){state.guion=evs.length?generarGuion():'';$('#guion').value=state.guion}
+    const firma=JSON.stringify(state.events.map(e=>[e.fecha,e.titulo,e.protagonistas,e.escena,e.monumento,e.lugar]));
+    if(firma!==firmaMundo){firmaMundo=firma;construirMundo()}
+    invalidar();infoGuion();infoTTS();
+    if(evs.length){try{generarSEO()}catch(e){console.error(e)}
+      try{const c=miniatura(1280,720);$('#mini-prev').src=c.toDataURL('image/jpeg',.85);tamActual=''}catch(e){console.error(e)}}
+    else{$('#mini-prev').removeAttribute('src')}
+    const T=tl();
+    if(evs.length){
+      const w=parseGuion(state.guion).reduce((a,x)=>a+palabras(x.texto),0);
+      estadoTodo(`Listo: ${evs.length} parada${evs.length>1?'s':''}, guion de ${w} palabras, video de ${fmt(T.total)}.`+(generarGuion.resumido&&!state.guionManual?` Resumí algunas frases para que entre en ${state.duracion} minutos.`:'')+(T.total>state.duracion*60+25?` Se pasa de ${state.duracion} minutos: elegí una duración mayor o sacá alguna efeméride.`:'')+(T.total<state.duracion*60-30&&!state.guionManual?` Para llegar a ${state.duracion} minutos, sumá más detalle a cada efeméride o agregá otra.`:'')+(state.guionManual?' Estás usando tu guion editado (Ajustes → Guion).':''));
+      if(!reproduciendo&&(tPlay<.5||tPlay>T.total)){const s1=T.secs.find(x=>x.id===0);tPlay=s1?s1.t0+3:0}
+    }else{estadoTodo('');tPlay=0}
+    guardarLocal();
+  }finally{ocupado=false}
+  dibujarVista();
 }
 function infoGuion(){const segs=parseGuion(state.guion);const w=segs.reduce((a,s)=>a+palabras(s.texto),0);
   $('#guion-info').textContent=segs.length?`${w} palabras · ${segs.length} intervenciones · voz estimada ${fmt(w/2.45)} (objetivo ${state.duracion}:00)`:'Tocá «Generar guion» o pegá uno con el formato de la leyenda.'}
@@ -5468,44 +5509,46 @@ function actualizarInfoTL(){
    ARRANQUE
    ============================================================ */
 function enlazar(){
-  $('#ep-titulo').addEventListener('input',e=>{state.titulo=e.target.value;guardarLocal();dibujarVista()});
-  $('#ep-fecha').addEventListener('input',e=>{state.fecha=e.target.value;guardarLocal();dibujarVista()});
-  $$('input[name=dur]').forEach(r=>r.addEventListener('change',()=>{state.duracion=+r.value;invalidar();infoGuion();guardarLocal();dibujarVista()}));
+  $('#ef-texto').addEventListener('input',()=>actualizarLuego(900));
+  $('#ef-texto').addEventListener('blur',()=>actualizarLuego(50));
+  $('#btn-ejemplo').addEventListener('click',()=>{$('#ef-texto').value=EJEMPLO_TEXTO;state.tituloAuto=true;$('#ep-titulo').value='';state.guionManual=false;actualizarTodo()});
+  $('#ep-titulo').addEventListener('input',e=>{const v=e.target.value.trim();state.tituloAuto=!v;if(v)state.titulo=v;actualizarLuego(700)});
+  $('#ep-fecha').addEventListener('input',e=>{state.fecha=e.target.value;actualizarLuego(700)});
+  $$('input[name=dur]').forEach(r=>r.addEventListener('change',()=>{state.duracion=+r.value;actualizarTodo()}));
   $$('input[name=fmt]').forEach(r=>r.addEventListener('change',()=>{state.formato=r.value;guardarLocal();dibujarVista()}));
-  $('#op-subs').addEventListener('change',e=>{state.subs=e.target.checked;guardarLocal();dibujarVista()});
   $$('input[name=cam]').forEach(r=>r.addEventListener('change',()=>{state.camara=r.value;invalidar();guardarLocal();dibujarVista()}));
-  for(const[id,k]of[['op-cine','cine'],['op-pelicula','pelicula'],['op-cenizas','cenizas'],['op-monitor','monitor'],['op-vozprueba','vozPrueba']])$('#'+id).addEventListener('change',e=>{state[k]=e.target.checked;guardarLocal();dibujarVista()});
+  for(const[id,k]of[['op-subs','subs'],['op-cine','cine'],['op-pelicula','pelicula'],['op-cenizas','cenizas'],['op-monitor','monitor'],['op-vozprueba','vozPrueba']])$('#'+id).addEventListener('change',e=>{state[k]=e.target.checked;guardarLocal();dibujarVista()});
   $$('input[name=modo]').forEach(r=>r.addEventListener('change',()=>{state.modo=r.value;ayudaModo();guardarLocal()}));
   $('#op-res').addEventListener('change',e=>{state.res=e.target.value;ayudaModo();guardarLocal()});
-  $('#btn-todo').addEventListener('click',generarTodo);
-  let tt=null;$('#ef-texto').addEventListener('input',()=>{clearTimeout(tt);tt=setTimeout(()=>leerTexto(),700)});
-  $('#ef-texto').addEventListener('blur',()=>leerTexto());
-  $('#btn-ejemplo').addEventListener('click',()=>{$('#ef-texto').value=EJEMPLO_TEXTO;state.titulo='';$('#ep-titulo').value='';leerTexto(true)});
-  $('#btn-muestra').addEventListener('click',async()=>{invalidar();pausa();tPlay=0;$('#paso-6').scrollIntoView({behavior:'smooth',block:'start'});await play()});
+  // fichas
   const L=$('#lista-ev');
   L.addEventListener('input',e=>{const card=e.target.closest('.ev');if(!card||!e.target.dataset.k)return;const i=+card.dataset.i;state.events[i][e.target.dataset.k]=e.target.value;state.events[i].editado=true;
     if(e.target.dataset.k==='titulo'||e.target.dataset.k==='fecha')card.querySelector('.tit').textContent=state.events[i].titulo||state.events[i].fecha||'Nueva efeméride';
-    guardarLocal();mundoLuego()});
+    actualizarLuego(1200)});
+  L.addEventListener('change',e=>{if(e.target.tagName==='SELECT')actualizarLuego(100)});
   L.addEventListener('click',e=>{const b=e.target.closest('button[data-acc]');if(!b)return;const i=+b.closest('.ev').dataset.i;const A=state.events;
-    if(b.dataset.acc==='sube'&&i>0)[A[i-1],A[i]]=[A[i],A[i-1]];if(b.dataset.acc==='baja'&&i<A.length-1)[A[i+1],A[i]]=[A[i],A[i+1]];if(b.dataset.acc==='borra')A.splice(i,1);
-    renderEventos();infoTexto();guardarLocal();mundoLuego()});
-  $('#btn-add-ev').addEventListener('click',()=>{const n=nuevoEvento();n.editado=true;state.events.push(n);$('#fichas').open=true;renderEventos();guardarLocal();mundoLuego();const c=L.lastElementChild;c&&c.querySelector('input').focus()});
-  $('#btn-ordenar').addEventListener('click',()=>{state.events.sort((a,b)=>claveFecha(a)-claveFecha(b));renderEventos();guardarLocal();mundoLuego()});
-  $('#btn-guion').addEventListener('click',()=>{if(state.guion.trim()&&!$('#btn-guion').dataset.ok){$('#btn-guion').dataset.ok='1';$('#btn-guion').textContent='¿Reemplazar el guion? Tocá de nuevo';setTimeout(()=>{delete $('#btn-guion').dataset.ok;$('#btn-guion').textContent='Generar guion'},3500);return}
-    delete $('#btn-guion').dataset.ok;$('#btn-guion').textContent='Generar guion';
-    state.guion=generarGuion();$('#guion').value=state.guion;invalidar();infoGuion();infoTTS();guardarLocal();dibujarVista()});
-  ayudaModo();
+    if(b.dataset.acc==='sube'&&i>0)[A[i-1],A[i]]=[A[i],A[i-1]];if(b.dataset.acc==='baja'&&i<A.length-1)[A[i+1],A[i]]=[A[i],A[i+1]];
+    if(b.dataset.acc==='borra'){const ev=A[i];A.splice(i,1);
+      if(ev.src){const t=$('#ef-texto');t.value=t.value.split('\n').filter(l=>{const x=l.replace(/^\s*(?:[-–—•*·]+|\d{1,2}[.)])\s+/,'').trim();return!x||!ev.src.startsWith(x.slice(0,30))}).join('\n');textoLeido=t.value;state.texto=t.value}}
+    else A.forEach(x=>x.editado=true);
+    renderEventos();infoTexto();actualizarTodo()});
+  $('#btn-add-ev').addEventListener('click',()=>{const n=nuevoEvento();n.editado=true;state.events.push(n);renderEventos();infoTexto();const c=L.lastElementChild;c&&c.querySelector('input').focus()});
+  $('#btn-ordenar').addEventListener('click',()=>{state.events.sort((a,b)=>claveFecha(a)-claveFecha(b));renderEventos();actualizarTodo()});
+  // guion
+  let tg=null;$('#guion').addEventListener('input',e=>{state.guion=e.target.value;state.guionManual=true;clearTimeout(tg);tg=setTimeout(()=>{invalidar();infoGuion();infoTTS();guardarLocal();dibujarVista()},400)});
+  $('#btn-guion').addEventListener('click',()=>{state.guionManual=false;actualizarTodo()});
   $('#btn-pedido').addEventListener('click',e=>copiar(pedidoIA(),e.currentTarget));
-  let tg=null;$('#guion').addEventListener('input',e=>{state.guion=e.target.value;clearTimeout(tg);tg=setTimeout(()=>{invalidar();infoGuion();infoTTS();guardarLocal();dibujarVista()},350)});
-  $('#btn-voces').addEventListener('click',cargarVoces);
-  $('#el-recordar').addEventListener('change',e=>{if(!e.target.checked)lsSet('ae_key','');else lsSet('ae_key',$('#el-key').value.trim())});
+  // voces
+  $('#btn-voces').addEventListener('click',()=>cargarVoces(false));
+  $('#el-key').addEventListener('change',e=>{lsSet('ae_key',e.target.value.trim())});
   for(const r of['N','V2','C'])$('#voz-'+r).addEventListener('change',e=>{state.voces[r]=e.target.value;invalidar();infoTTS();guardarLocal()});
   $('#el-modelo').addEventListener('change',e=>{state.modelo=e.target.value;invalidar();infoTTS();guardarLocal()});
   $('#btn-tts').addEventListener('click',generarTTS);
   $('#in-voz').addEventListener('change',async e=>{const f=e.target.files[0];if(!f){audio.propia=null;audio.propiaNombre='';invalidar();infoTTS();return}
-    try{audio.propia=await ctxAudio().decodeAudioData(await f.arrayBuffer());audio.propiaNombre=f.name;estadoTTS(`Locución cargada: ${f.name} (${fmt(audio.propia.duration)}). Los subtítulos y las paradas se reparten según el largo de cada parte del guion.`)}
+    try{audio.propia=await ctxAudio().decodeAudioData(await f.arrayBuffer());audio.propiaNombre=f.name;estadoTTS(`Locución cargada: ${f.name} (${fmt(audio.propia.duration)}).`)}
     catch(_){estadoTTS('No pude leer ese audio. Probá con MP3 o WAV.',true)}invalidar();infoTTS();dibujarVista()});
   $('#btn-voz-wav').addEventListener('click',bajarVozWav);$('#btn-voz-mp3').addEventListener('click',bajarVozMp3);
+  // música
   $('#in-musica').addEventListener('change',async e=>{const fs=[...e.target.files];let mal=0;
     for(const f of fs){try{audio.musicas.push({nombre:f.name.replace(/\.[^.]+$/,''),buffer:await ctxAudio().decodeAudioData(await f.arrayBuffer())})}catch(_){mal++}}
     e.target.value='';renderMusica(mal?`No pude leer ${mal} archivo(s). Probá con MP3 o WAV.`:'');invalidar()});
@@ -5515,30 +5558,40 @@ function enlazar(){
   $('#btn-mus-orig').addEventListener('click',async()=>{await cargarMusicaCanal();invalidar()});
   $('#mus-vol').addEventListener('input',e=>{state.musVol=e.target.value/100;$('#mus-vol-v').textContent=e.target.value+'%';audio.mixKey='';guardarLocal()});
   $('#mus-duck').addEventListener('input',e=>{state.musDuck=e.target.value/100;$('#mus-duck-v').textContent=e.target.value+'%';audio.mixKey='';guardarLocal()});
+  // video
   $('#btn-play').addEventListener('click',play);
   $('#scrub').addEventListener('input',e=>{const was=reproduciendo;pausa();tPlay=e.target.value/1000*tl().total;dibujarVista();if(was)play()});
-  $('#btn-export').addEventListener('click',()=>exportar());
+  $('#btn-export').addEventListener('click',()=>{if(!parseGuion(state.guion).length){estadoExp('Primero escribí tus efemérides.',true);return}exportar()});
   $('#btn-cancel').addEventListener('click',()=>{cancelar=true});
+  // miniatura
+  const rehacerMini=()=>{try{const c=miniatura(1280,720);$('#mini-prev').src=c.toDataURL('image/jpeg',.85);tamActual='';dibujarVista()}catch(e){}};
   $('#btn-mini').addEventListener('click',()=>hacerMini(1280,720,slug(state.titulo)+'-miniatura.png'));
   $('#btn-portada').addEventListener('click',()=>hacerMini(1080,1920,slug(state.titulo)+'-portada-vertical.png'));
-  $('#btn-seo').addEventListener('click',generarSEO);
+  let tm=null;for(const id of['mini-l1','mini-l2'])$('#'+id).addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(rehacerMini,500)});
+  $('#mini-parada').addEventListener('change',rehacerMini);
   document.addEventListener('click',e=>{const b=e.target.closest('[data-copiar]');if(b)copiar($('#'+b.dataset.copiar).value,b);const t=e.target.closest('[data-titulo]');if(t)copiar(JSON.parse($('#seo-titulos').dataset.lista)[+t.dataset.titulo],t)});
+  // proyecto
   $('#btn-guardar').addEventListener('click',()=>descargar(new Blob([JSON.stringify(proyecto(),null,2)],{type:'application/json'}),slug(state.titulo)+'.anarcoefemerides.json'));
   $('#btn-abrir').addEventListener('click',()=>$('#in-proyecto').click());
-  $('#in-proyecto').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{cargarProyecto(JSON.parse(await f.text()))}catch(_){estadoExp('Ese archivo no es un proyecto válido.',true)}e.target.value=''});
+  $('#in-proyecto').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{cargarProyecto(JSON.parse(await f.text()));firmaMundo='';renderEventos();infoTexto();actualizarTodo()}catch(_){estadoTodo('Ese archivo no es un proyecto válido.',true)}e.target.value=''});
+  $('#btn-nuevo').addEventListener('click',()=>{const b=$('#btn-nuevo');if(!b.dataset.ok){b.dataset.ok='1';b.textContent='¿Seguro? Tocá de nuevo';setTimeout(()=>{delete b.dataset.ok;b.textContent='Empezar de cero'},3000);return}
+    delete b.dataset.ok;b.textContent='Empezar de cero';audio.cache.clear();cargarProyecto({});state.events=[];textoLeido='';firmaMundo='';renderEventos();infoTexto();actualizarTodo();$('#ef-texto').focus()});
   window.addEventListener('resize',()=>dibujarVista());
 }
 async function iniciar(){
   try{await Promise.all([document.fonts.load('80px Anton'),document.fonts.load('600 40px Oswald'),document.fonts.load('500 40px Oswald')])}catch(e){}
-  hacerGrano();initThree();enlazar();
+  if(enVistaPrevia())$('#aviso-vista').hidden=false;
+  hacerGrano();initThree();
+  voicesList=[...VOCES_CUENTA];
+  const k=lsGet('ae_key','');$('#el-key').value=k||CLAVE_EL;
+  enlazar();
+  let p=null;try{p=JSON.parse(lsGet(CLAVE_LS,'null'))}catch(e){}
+  cargarProyecto(p||{});
+  renderEventos();infoTexto();ayudaModo();
   await cargarMusicaCanal();
-  const k=lsGet('ae_key','');if(k){$('#el-key').value=k;$('#el-recordar').checked=true}
-  let p=null;try{p=JSON.parse(lsGet('ae_proyecto','null'))}catch(e){}
-  if(!p){p={events:[],duracion:5,formato:'16:9',guion:''}}
-  cargarProyecto(p);
-  if(!state.guion.trim()){state.guion=generarGuion();$('#guion').value=state.guion;invalidar();infoGuion();infoTTS()}
-  tPlay=Math.min(14,tl().total*.1);dibujarVista();
-  window.__AE={state,tl,renderCuadro,exportar,miniatura,generarSEO,construirTL,plano:planoActual,set t(v){tPlay=v;dibujarVista()}};
+  actualizarTodo();
+  window.__AE={state,tl,renderCuadro,exportar,miniatura,generarSEO,construirTL,plano:planoActual,actualizarTodo,set t(v){tPlay=v;dibujarVista()}};
+  if(!enVistaPrevia())cargarVoces(true);
 }
 iniciar();
 </script>
