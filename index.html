@@ -72,6 +72,12 @@ button.grande{font-size:21px;padding:14px 18px;justify-content:center;letter-spa
 .mi select{border:0;border-top:1.5px solid var(--tinta);font-size:12.5px;padding:5px}
 .mi small{font-size:11px;color:var(--gris);padding:3px 6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mi button{position:absolute;top:4px;right:4px;padding:1px 7px;font-size:12px}
+.planb{margin-top:12px;border:2px solid var(--tinta);padding:10px 12px;background:#F7F1E3}
+.planb a{color:var(--rojo);font-weight:600}
+.planb summary{cursor:pointer;font-family:var(--display);font-size:16px;text-transform:uppercase;letter-spacing:.4px}
+.planb ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.zocalo.chico{padding:14px 10px}
+.zocalo.chico b{font-size:17px}
 .aviso{background:var(--rojo);color:var(--papel);padding:12px 20px;font-size:16px;text-align:center}
 details.ajustes>summary{font-family:var(--display);font-size:24px;text-transform:uppercase;cursor:pointer;display:flex;gap:10px;align-items:center;list-style:none}
 details.ajustes>summary b{background:var(--tinta);color:var(--papel);font-weight:400;min-width:34px;height:34px;display:inline-grid;place-items:center}
@@ -261,7 +267,7 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
       </div>
       <div class="segs" id="segs" hidden></div>
       <div class="fila" style="margin-top:10px;align-items:end">
-        <div><label for="in-voz">O usá una locución ya hecha (MP3/WAV)</label><input type="file" id="in-voz" accept="audio/*"></div>
+        <div><label for="in-voz">O usá una locución ya hecha (MP3/WAV)</label><input type="file" id="in-voz" accept="audio/*" multiple></div>
         <div style="flex:0 0 auto;display:flex;gap:8px;flex-wrap:wrap">
           <button type="button" id="btn-voz-wav" class="claro">Bajar locución WAV</button>
           <button type="button" id="btn-voz-mp3" class="claro">Bajar MP3</button>
@@ -329,6 +335,16 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
       <button type="button" id="btn-cancel" class="claro" hidden>Cancelar</button>
     </div>
     <p class="ayuda" id="tts-info"></p>
+    <div class="fila" style="margin-top:6px"><button type="button" id="btn-probar" class="claro" style="flex:0 0 auto">Probar la voz (frase corta)</button></div>
+    <details id="planb" class="planb">
+      <summary>¿La voz no conecta? Plan B, funciona siempre</summary>
+      <ol>
+        <li><button type="button" id="btn-copiar-guion" class="claro">Copiar el guion</button></li>
+        <li>Pegalo en <a href="https://elevenlabs.io/app/speech-synthesis/text-to-speech" target="_blank" rel="noopener">ElevenLabs → Text to Speech</a>, elegí la voz <b>Mario p</b> y descargá el MP3. Si es muy largo, hacelo en dos partes.</li>
+        <li><div id="zona-mp3" class="zocalo chico" role="button" tabindex="0"><b>Soltá acá el MP3</b><span>o tocá para elegirlo (si son varias partes, soltalas juntas)</span></div></li>
+      </ol>
+    </details>
+    <input type="file" id="in-mp3" accept="audio/*" multiple hidden>
     <div class="barra" id="tts-barra" hidden><i></i></div>
     <div class="estado" id="tts-estado"></div>
     <div class="barra" id="exp-barra" hidden><i></i></div>
@@ -5217,23 +5233,68 @@ function afichePropio(ev){ // cuando una parada no tiene imágenes
   return c;
 }
 
-/* ---- afiches montados en la plaza ---- */
-const LUGARES_AFICHE=[[-9,-2],[9,-2],[-13.5,-9],[13.5,-9],[-6.5,5],[6.5,5],[-15,3],[15,3]];
+/* ---- murales 3D: pared de revoque con la imagen pintada en bajorrelieve ---- */
+let REVOQUE=null;
+function texRevoque(){
+  if(REVOQUE)return REVOQUE;const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');const R=rng(21);
+  x.fillStyle='#E4D6BA';x.fillRect(0,0,512,512);
+  for(let i=0;i<9000;i++){const v=R();x.fillStyle=v<.5?`rgba(120,90,70,${R()*.12})`:`rgba(255,250,235,${R()*.18})`;x.fillRect(R()*512,R()*512,1+R()*3,1+R()*3)}
+  // ladrillos a la vista donde se cayó el revoque
+  for(let k=0;k<3;k++){const cx=R()*512,cy=R()*512;x.save();x.beginPath();for(let a=0;a<6.28;a+=.5)x.lineTo(cx+Math.cos(a)*(30+R()*40),cy+Math.sin(a)*(20+R()*30));x.closePath();x.clip();
+    x.fillStyle='#C9BBA0';x.fillRect(cx-90,cy-90,180,180);for(let yy=cy-90;yy<cy+90;yy+=16)for(let xx=cx-90+((yy/16)%2)*18;xx<cx+90;xx+=36){x.fillStyle=`rgb(${140+R()*40|0},${50+R()*20|0},${35+R()*15|0})`;x.fillRect(xx,yy,33,13)}x.restore()}
+  x.strokeStyle='rgba(70,50,40,.35)';x.lineWidth=1.2;for(let k=0;k<7;k++){let px=R()*512,py=R()*512;x.beginPath();x.moveTo(px,py);for(let j=0;j<12;j++){px+=(R()-.5)*40;py+=R()*30;x.lineTo(px,py)}x.stroke()}
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;REVOQUE=t;return t;
+}
+const muralCache=new Map();
+function muralDe(m){
+  const k=(m.id||'x')+'|'+(state.tenir?1:0);if(muralCache.has(k))return muralCache.get(k);
+  const src=m.propio?m.canvas:(m.retrato?reducirImagen(m.canvas,1024):texMedia(m).userData.canvas);
+  const W=src.width,H=src.height;const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');const R=rng(hash(String(k)));
+  // pintura sobre la pared: bordes irregulares, revoque que se transparenta y pintura saltada
+  x.fillStyle=x.createPattern(texRevoque().image,'repeat');x.fillRect(0,0,W,H);
+  x.save();x.beginPath();const m0=Math.min(W,H)*.035;const pts=[];
+  for(let i=0;i<=24;i++)pts.push([m0+(W-2*m0)*i/24,m0+(R()-.5)*m0]);for(let i=0;i<=24;i++)pts.push([W-m0+(R()-.5)*m0,m0+(H-2*m0)*i/24]);
+  for(let i=24;i>=0;i--)pts.push([m0+(W-2*m0)*i/24,H-m0+(R()-.5)*m0]);for(let i=24;i>=0;i--)pts.push([m0+(R()-.5)*m0,m0+(H-2*m0)*i/24]);
+  pts.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.clip();x.drawImage(src,0,0,W,H);x.restore();
+  x.save();x.globalCompositeOperation='multiply';x.globalAlpha=.42;x.fillStyle=x.createPattern(texRevoque().image,'repeat');x.fillRect(0,0,W,H);x.restore();
+  for(let i=0;i<26;i++){x.fillStyle=`rgba(228,214,186,${.5+R()*.4})`;x.beginPath();const ex=R()<.5?R()*W:(R()<.5?R()*m0*3:W-R()*m0*3),ey=R()<.5?R()*H:(R()<.5?R()*m0*3:H-R()*m0*3);x.ellipse(ex,ey,2+R()*10,2+R()*7,R()*3,0,7);x.fill()}
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;t.userData.canvas=c;
+  // mapa de alturas suavizado para el bajorrelieve
+  const s=reducirImagen(src,150);const sx=s.getContext('2d');const d=sx.getImageData(0,0,s.width,s.height).data;const n=s.width*s.height;let L=new Float32Array(n);
+  for(let i=0;i<n;i++)L[i]=(.3*d[i*4]+.59*d[i*4+1]+.11*d[i*4+2])/255;
+  for(let pass=0;pass<2;pass++){const o=new Float32Array(n);for(let y=0;y<s.height;y++)for(let x2=0;x2<s.width;x2++){let a=0,cnt=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const yy=y+dy,xx=x2+dx;if(yy<0||xx<0||yy>=s.height||xx>=s.width)continue;a+=L[yy*s.width+xx];cnt++}o[y*s.width+x2]=a/cnt}L=o}
+  const res={tex:t,alto:{w:s.width,h:s.height,L}};muralCache.set(k,res);return res;
+}
+function geomRelieve(w,h,alto,prof){
+  const g=new THREE.PlaneGeometry(w,h,alto.w-1,alto.h-1);const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){const col=i%alto.w,row=Math.floor(i/alto.w);const bx=Math.min(col,alto.w-1-col)/alto.w,by=Math.min(row,alto.h-1-row)/alto.h;
+    const borde=smooth(Math.min(bx,by)/.04);p.setZ(i,(alto.L[i]*prof)*borde)}
+  g.computeVertexNormals();return g;
+}
+const LUGARES_AFICHE=[[-11,-2],[11,-2],[-16,-11.5],[16,-11.5],[-8,7.5],[8,7.5],[-18.5,3],[18.5,3]];
 function montarAfiches(pr,ev,lista){
   const pg=pr.pg;pr.cuadros=[];
   const items=lista.length?lista:[{id:'af-'+hash(ev.titulo+ev.fecha),canvas:afichePropio(ev),nombre:ev.titulo,keys:tokensDe(ev.titulo),propio:true}];
-  items.forEach((m,k)=>{
+    items.forEach((m,k)=>{
     const[x,z]=LUGARES_AFICHE[k%LUGARES_AFICHE.length];const asp=(m.canvas.width||1)/(m.canvas.height||1);
-    let h=4.4,w=h*asp;if(w>7.4){w=7.4;h=w/asp}
+    let h=5.6,w=h*asp;if(w>8.8){w=8.8;h=w/asp}
     const g=new THREE.Group();g.position.set(x,.3,z);g.rotation.y=Math.atan2(0-x,24-z);pg.add(g);
-    const yc=1.6+h/2;
-    for(const s of[-1,1])malla(cil(.07,.09,yc+h/2,8),MAT.negro,g,s*(w/2-.25),(yc+h/2)/2,-.12);
-    malla(caja(w+.36,h+.36,.14),MAT.negro,g,0,yc,-.1,0,0,0,MAT.contornoG);
-    const tex=m.propio?(()=>{const t=new THREE.CanvasTexture(m.canvas);t.colorSpace=THREE.SRGBColorSpace;return t})():texMedia(m);
-    const pl=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,toneMapped:false}));pl.position.set(0,yc,-.02);g.add(pl);
+    const yc=1.25+h/2,Wp=w+1.3,Hp=h+1.9,prof=.9;
+    // pared, zócalo, cornisa y pilastras
+    const tr=texRevoque().clone();tr.needsUpdate=true;tr.repeat.set(Wp/5,Hp/5);tr.userData.canvas=true;const pared=malla(caja(Wp,Hp,prof),new THREE.MeshStandardMaterial({map:tr,roughness:.95,metalness:0}),g,0,Hp/2,-prof/2,0,0,0,null);
+    malla(caja(Wp+.5,.7,prof+.35),MAT.negro,g,0,.35,-prof/2,0,0,0,MAT.contornoG);
+    malla(caja(Wp+.7,.42,prof+.55),MAT.bronce,g,0,Hp+.21,-prof/2,0,0,0,MAT.contornoG);
+    malla(caja(Wp+.3,.16,prof+.3),MAT.negro,g,0,Hp+.5,-prof/2,0,0,0,null);
+    for(const s of[-1,1]){malla(caja(.5,Hp,prof+.3),MAT.rojo,g,s*(Wp/2-.05),Hp/2,-prof/2,0,0,0,MAT.contornoG);malla(caja(.7,.35,prof+.45),MAT.negro,g,s*(Wp/2-.05),Hp+.05,-prof/2)}
+    // nicho rehundido y mural en bajorrelieve
+    malla(caja(w+.36,h+.36,.06),MAT.negro,g,0,yc,.005,0,0,0,null);
+    const mu=muralDe(m);const geo=geomRelieve(w,h,mu.alto,.5);
+    const mural=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:mu.tex,roughness:.88,metalness:0}));mural.position.set(0,yc,.04);mural.castShadow=true;mural.receiveShadow=true;g.add(mural);
+    // reflector
+    const foco=malla(cil(.12,.22,.4,10),MAT.negro,g,0,Hp+.65,.55,-.9,0,0,null);
     g.updateMatrixWorld(true);
-    const c=g.localToWorld(V(0,yc,0));const n=g.localToWorld(V(0,yc,1)).sub(c).normalize();
-    pr.cuadros.push({c,n,w,h,m,keys:m.keys||new Set()});
+    const c=g.localToWorld(V(0,yc,.2));const nrm=g.localToWorld(V(0,yc,1.2)).sub(c).normalize();
+    pr.cuadros.push({c,n:nrm,w,h,m,keys:m.keys||new Set()});
   });
 }
 
@@ -5344,11 +5405,12 @@ function poseCuadro(q,u,s,k){
   const vf=fovBase*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*(cam.aspect||16/9));
   const d=Math.max((q.w/2)/Math.tan(hf/2),(q.h/2)/Math.tan(vf/2))/.86;
   const up=V(0,1,0),lado=V(q.n.z,0,-q.n.x);const v=k%3;
-  let dd=d,lat=0,dy=0,ly=0;
-  if(v===0){dd=d*lerp(1.16,.94,u)}
-  else if(v===1){dd=d*1.02;lat=lerp(-.1,.1,u)*q.w*s}
-  else{dd=d*lerp(1.06,.97,u);dy=-q.h*.22;ly=q.h*.04}
-  const p=q.c.clone().add(q.n.clone().multiplyScalar(dd)).add(lado.clone().multiplyScalar(lat)).add(up.clone().multiplyScalar(dy));
+  let dd=d,lat=0,dy=0,ly=0,ang=0;
+  if(v===0){dd=d*lerp(1.18,.96,u);ang=.14*s}
+  else if(v===1){dd=d*1.08;ang=lerp(-.42,.42,u)*s}
+  else{dd=d*lerp(1.08,1,u);dy=-q.h*.24;ly=q.h*.05;ang=-.16*s}
+  const dir=q.n.clone().applyAxisAngle(up,ang);
+  const p=q.c.clone().add(dir.multiplyScalar(dd)).add(lado.clone().multiplyScalar(lat)).add(up.clone().multiplyScalar(dy));
   const l=q.c.clone().add(lado.clone().multiplyScalar(lat*.5)).add(up.clone().multiplyScalar(ly));
   return{p,l};
 }
@@ -5670,39 +5732,86 @@ function errorRed(){
   if(enVistaPrevia())return'No hay conexión porque el editor está abierto dentro de una vista previa. Descargá el archivo y abrilo con doble clic en Chrome o Edge.';
   return'No se pudo llegar a ElevenLabs. Revisá que la compu tenga internet y probá de nuevo.';
 }
-async function leerError(r){let m='';try{const j=await r.json();const d=j.detail||j;m=(d.message||d.status||(typeof d==='string'?d:''))}catch(e){}return m}
-function claveActual(){return ($('#el-key').value||'').trim()||CLAVE_EL}
+const ERRORES_EL={
+  invalid_api_key:'La clave no es válida: puede tener un espacio de más, estar incompleta o haber sido borrada en ElevenLabs.',
+  missing_permissions:'La clave existe pero no tiene permiso de «Text to Speech». En ElevenLabs → Developers → API Keys, editala y activá «Text to Speech», o creá una clave nueva sin restricciones.',
+  quota_exceeded:'No quedan créditos suficientes en tu cuenta de ElevenLabs.',
+  voice_not_found:'La voz elegida no está en la cuenta de esta clave.',
+  detected_unusual_activity:'ElevenLabs bloqueó el uso por API del plan gratuito («actividad inusual», pasa con VPN o cuentas gratis). Con un plan pago se destraba; mientras tanto usá el Plan B.',
+  payment_required:'Esta voz o este modelo necesitan un plan pago en ElevenLabs.',
+  voice_limit_reached:'Tu plan no permite usar esa voz por API.',
+  too_many_concurrent_requests:'Demasiados pedidos a la vez. Esperá un minuto y volvé a tocar.',
+  system_busy:'ElevenLabs está saturado. Probá en unos minutos.',
+  max_character_limit_exceeded:'Un fragmento es demasiado largo para ese modelo.'};
+async function leerDetalle(r){
+  let code=String(r.status),msg='';
+  try{const j=await r.json();const d=j.detail!==undefined?j.detail:j;
+    if(Array.isArray(d)){msg=d.map(x=>x.msg||'').join(' ');code='422'}
+    else if(typeof d==='string')msg=d;else if(d){code=d.status||d.code||code;msg=d.message||''}}catch(e){}
+  return{code,msg};
+}
+function explicar(code,msg,status){
+  const base=ERRORES_EL[code]||(status===401?ERRORES_EL.invalid_api_key:status===402?ERRORES_EL.payment_required:status===429?ERRORES_EL.too_many_concurrent_requests:(msg||'ElevenLabs respondió con un error.'));
+  return `${base} (código: ${code}${status&&String(status)!==String(code)?', '+status:''})`;
+}
+async function leerError(r){const d=await leerDetalle(r);return d.msg||d.code}
+function claveActual(){return ($('#el-key').value||'').trim().replace(/^["']|["']$/g,'')||CLAVE_EL}
+async function pedirVoz(key,voz,texto,modelo,ajustes){
+  let r;
+  try{r=await fetch(`${EL}/v1/text-to-speech/${encodeURIComponent(voz)}?output_format=mp3_44100_128`,{method:'POST',headers:{'xi-api-key':key,'Content-Type':'application/json'},body:JSON.stringify({text:texto,model_id:modelo,...(ajustes&&modelo!=='eleven_v3'?{voice_settings:ajustes}:{})})})}
+  catch(e){const err=new Error(errorRed());err.code='red';throw err}
+  if(!r.ok){const d=await leerDetalle(r);const err=new Error(explicar(d.code,d.msg,r.status));err.code=d.code;err.status=r.status;throw err}
+  return r.arrayBuffer();
+}
 async function cargarVoces(silencioso){
-  const key=claveActual();if(!silencioso)estadoTTS('Probando la conexión con ElevenLabs…');
-  try{const r=await fetch(EL+'/v1/voices',{headers:{'xi-api-key':key}});
-    if(r.status===401){const m=await leerError(r);
-      if(/permission|permiso|voices_read/i.test(m)){if(!silencioso)estadoTTS('La clave conecta, pero no tiene permiso para listar voces. No importa: tus voces ya están cargadas y para ponerle la voz alcanza con el permiso «Text to Speech».');return true}
-      throw new Error('ElevenLabs no acepta la clave'+(m?': '+m:'.')+' Revisala en ElevenLabs → Developers → API Keys.')}
-    if(!r.ok)throw new Error('ElevenLabs respondió con error '+r.status+'.');
+  const key=claveActual();
+  try{const r=await fetch(EL+'/v1/voices',{headers:{'xi-api-key':key}});if(!r.ok)return false;
     const j=await r.json();const vistas=new Set(VOCES_CUENTA.map(v=>v.id));
     voicesList=[...VOCES_CUENTA,...(j.voices||[]).filter(v=>!vistas.has(v.voice_id)).map(v=>({id:v.voice_id,nombre:v.name,cat:v.category||''}))];
-    llenarVoces();if(!silencioso)estadoTTS(`Conectado: ${voicesList.length} voces disponibles. Narrador: Mario p.`);return true;
-  }catch(e){if(!silencioso)estadoTTS(e instanceof TypeError?errorRed():e.message,true);return false}
+    llenarVoces();return j.voices||[];
+  }catch(e){return false}
+}
+// prueba real: genera «Hola» con la misma clave, voz y modelo que se van a usar (≈ 20 créditos)
+async function probarConexion(){
+  const key=claveActual();const voz=state.voces.N;const btn=$('#btn-voces');btn.disabled=true;
+  estadoTTS('Probando: le pido a ElevenLabs que diga una frase corta con tu voz…');
+  try{
+    let mp3;
+    try{mp3=await pedirVoz(key,voz,'Hola, compañeras y compañeros.',state.modelo)}
+    catch(e){
+      if(e.code==='voice_not_found'||e.status===404){
+        const vs=await cargarVoces(true);const alt=Array.isArray(vs)&&(vs.find(v=>/mario/i.test(v.name))||vs.find(v=>v.category==='cloned')||vs[0]);
+        if(alt){state.voces.N=alt.voice_id;llenarVoces();$('#voz-N').value=alt.voice_id;guardarLocal();mp3=await pedirVoz(key,alt.voice_id,'Hola, compañeras y compañeros.',state.modelo);
+          estadoTTS(`La voz «Mario p» no está en la cuenta de esta clave: elegí «${alt.name}», que sí está. Si querés Mario p, usá la clave de la cuenta donde la clonaste.`)}
+        else throw e;
+      }else throw e;
+    }
+    const ac=ctxAudio();await ac.resume();const b=await ac.decodeAudioData(mp3.slice(0));const s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start();
+    if(!/no está en la cuenta/.test($('#tts-estado').textContent))estadoTTS('¡Funciona! Escuchaste la voz de prueba. Ya podés tocar «Ponerle la voz».');
+    lsSet('ae_key_ok',key);
+  }catch(e){estadoTTS(e.message+' Mientras tanto, el Plan B de abajo funciona siempre.',true)}
+  finally{btn.disabled=false}
 }
 function llenarVoces(){
   if(!voicesList.length)voicesList=[...VOCES_CUENTA];
   for(const rol of['N','V2','C']){const s=$('#voz-'+rol);const prev=state.voces[rol]||VOZ_DEF[rol];
+    if(!voicesList.some(v=>v.id===prev))voicesList.push({id:prev,nombre:'Voz elegida',cat:''});
     s.innerHTML=voicesList.map(v=>`<option value="${esc(v.id)}">${esc(v.nombre)}${v.cat==='cloned'?' (tu voz clonada)':''}</option>`).join('');
-    s.value=voicesList.some(v=>v.id===prev)?prev:VOZ_DEF[rol];state.voces[rol]=s.value}
+    s.value=prev;state.voces[rol]=s.value}
 }
 function pendientes(){if(audio.propia)return[];return parseGuion(state.guion).filter(s=>!audioDeSeg(s))}
 function infoTTS(){
   const segs=parseGuion(state.guion);const pend=pendientes();const ch=pend.reduce((a,s)=>a+s.texto.length,0);
   const nombre=(voicesList.find(v=>v.id===state.voces.N)||{}).nombre||'Mario p';
-  $('#tts-info').textContent=audio.propia?`Con tu locución subida (${fmt(audio.propia.duration)}).`:
+  $('#tts-info').textContent=audio.propia?`Locución cargada: ${audio.propiaNombre} (${fmt(audio.propia.duration)}). Los subtítulos y las imágenes se acomodan a esa voz.`:
     !segs.length?'':pend.length?`La voz la pone ${nombre}: ${segs.length-pend.length} de ${segs.length} partes listas. Faltan ${ch.toLocaleString('es-AR')} caracteres (≈ ${ch.toLocaleString('es-AR')} créditos).`:`Voz completa: ${segs.length} partes con la voz de ${nombre}. Ya podés grabar.`;
-  const b=$('#btn-tts');if(b)b.textContent=pend.length&&!audio.propia?(segs.length-pend.length?'🎙 Completar la voz':'🎙 Ponerle la voz'):'✓ Voz lista';
+  const b=$('#btn-tts');if(b)b.textContent=audio.propia?'✓ Voz cargada':pend.length?(segs.length-pend.length?'🎙 Completar la voz':'🎙 Ponerle la voz'):'✓ Voz lista';
   const box=$('#segs');box.hidden=!segs.length||!!audio.propia;
   box.innerHTML=segs.map(s=>`<div><span class="${audioDeSeg(s)?'ok':'no'}">${audioDeSeg(s)?'●':'○'}</span><b>${s.voz}</b><span>${esc(s.texto.slice(0,90))}</span></div>`).join('');
 }
 async function generarTTS(){
   const key=claveActual();
-  if(audio.propia){estadoTTS('Estás usando una locución subida en Ajustes. Quitala para generar con ElevenLabs.',true);return}
+  if(audio.propia){estadoTTS('Ya hay una locución cargada (Plan B). Para generar con la API, quitala desde Ajustes → Voces.',true);return}
   if(!parseGuion(state.guion).length){estadoTTS('Primero escribí tus efemérides.',true);return}
   const pend=pendientes();if(!pend.length){estadoTTS('La voz ya está completa. Podés grabar el video.');return}
   pausa();const ac=ctxAudio();const barra=$('#tts-barra');barra.hidden=false;const btn=$('#btn-tts');btn.disabled=true;
@@ -5710,19 +5819,39 @@ async function generarTTS(){
   try{
     for(const s of pend){
       estadoTTS(`Poniendo la voz: parte ${hechos+1} de ${pend.length}…`);
-      const voz=vozId(s.voz);const body={text:s.texto,model_id:state.modelo};
-      if(state.modelo!=='eleven_v3')body.voice_settings={stability:s.voz==='C'?.35:.5,similarity_boost:.8,style:s.voz==='V2'?.35:.2,use_speaker_boost:true};
-      let r;try{r=await fetch(`${EL}/v1/text-to-speech/${encodeURIComponent(voz)}?output_format=mp3_44100_128`,{method:'POST',headers:{'xi-api-key':key,'Content-Type':'application/json',Accept:'audio/mpeg'},body:JSON.stringify(body)})}
-      catch(e){throw new Error(errorRed())}
-      if(!r.ok){const m=await leerError(r);
-        throw new Error(r.status===401?'ElevenLabs no acepta la clave'+(m?': '+m:'')+'. Revisala en Ajustes → Voces.':r.status===429?'ElevenLabs está limitando pedidos. Esperá un minuto y tocá de nuevo: lo ya generado no se pierde.':/quota|credit/i.test(m)?'No quedan créditos suficientes en ElevenLabs. Lo ya generado se conserva.':(m||'Error '+r.status)+'. Lo ya generado se conserva.')}
-      const mp3=await r.arrayBuffer();const buffer=await ac.decodeAudioData(mp3.slice(0));
+      const voz=vozId(s.voz);
+      const mp3=await pedirVoz(key,voz,s.texto,state.modelo,{stability:s.voz==='C'?.35:.5,similarity_boost:.8,style:s.voz==='V2'?.35:.2,use_speaker_boost:true});
+      const buffer=await ac.decodeAudioData(mp3.slice(0));
       audio.cache.set(voz+'|'+state.modelo+'|'+s.texto,{buffer,mp3});
       hechos++;barra.firstElementChild.style.width=(hechos/pend.length*100)+'%';invalidar();infoTTS();
     }
+    lsSet('ae_key_ok',key);
     estadoTTS(`Voz lista. El video dura ${fmt(tl().total)}. Tocá ▶ Ver para escucharlo o ● Grabar video.`);
-  }catch(e){estadoTTS(e.message,true)}
+  }catch(e){estadoTTS(e.message+(hechos?' Lo ya generado se conserva.':'')+' Si no se arregla, usá el Plan B de abajo.',true);$('#planb').open=true}
   finally{btn.disabled=false;barra.hidden=true;invalidar();infoTTS();dibujarVista()}
+}
+// Plan B: guion listo para pegar en ElevenLabs y soltar el MP3
+function guionParaElevenLabs(){
+  const segs=parseGuion(state.guion);let out=[],sec=null;
+  for(const s of segs){if(s.sec!==sec&&out.length)out.push('');sec=s.sec;out.push(s.voz==='C'?`«${s.texto.replace(/^«|»$/g,'')}»`:s.texto)}
+  return out.join('\n');
+}
+async function cargarLocuciones(lista){
+  lista=lista.filter(f=>/^audio\//.test(f.type)||/\.(mp3|wav|m4a|ogg)$/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name,'es',{numeric:true}));
+  if(!lista.length){estadoTTS('Soltá un archivo de audio (MP3 o WAV).',true);return}
+  try{const ac=ctxAudio();const bufs=[];for(const f of lista)bufs.push(await ac.decodeAudioData(await f.arrayBuffer()));
+    const sr=bufs[0].sampleRate,gap=Math.round(sr*.4);const len=bufs.reduce((a,b)=>a+b.length,0)+gap*(bufs.length-1);
+    const out=ac.createBuffer(2,len,sr);let o=0;for(const b of bufs){for(let c=0;c<2;c++)out.getChannelData(c).set(b.getChannelData(Math.min(c,b.numberOfChannels-1)),o);o+=b.length+gap}
+    audio.propia=out;audio.propiaNombre=lista.length>1?`${lista.length} partes`:lista[0].name;
+    estadoTTS(`Locución cargada${lista.length>1?' ('+lista.length+' partes en orden)':''}: ${fmt(out.duration)}. Las imágenes y los subtítulos ya siguen esa voz.`);
+  }catch(_){estadoTTS('No pude leer ese audio. Probá con el MP3 que descarga ElevenLabs.',true)}
+  invalidar();infoTTS();dibujarVista();
+}
+async function cargarLocucion(f){
+  if(!f)return;try{audio.propia=await ctxAudio().decodeAudioData(await f.arrayBuffer());audio.propiaNombre=f.name;
+    estadoTTS(`Locución cargada: ${f.name} (${fmt(audio.propia.duration)}). El video ahora dura ${fmt(tl().total)}.`)}
+  catch(_){estadoTTS('No pude leer ese audio. Probá con el MP3 que descarga ElevenLabs.',true)}
+  invalidar();infoTTS();dibujarVista();
 }
 async function bajarVozWav(){
   const T=tl();if(!T.segs.some(s=>s.audio)&&!audio.propia){estadoTTS('Todavía no hay locución generada.',true);return}
@@ -6091,14 +6220,19 @@ function enlazar(){
   $('#btn-guion').addEventListener('click',()=>{state.guionManual=false;actualizarTodo()});
   $('#btn-pedido').addEventListener('click',e=>copiar(pedidoIA(),e.currentTarget));
   // voces
-  $('#btn-voces').addEventListener('click',()=>cargarVoces(false));
-  $('#el-key').addEventListener('change',e=>{lsSet('ae_key',e.target.value.trim())});
+  $('#btn-voces').addEventListener('click',probarConexion);
+  $('#btn-probar').addEventListener('click',probarConexion);
+  $('#btn-copiar-guion').addEventListener('click',e=>copiar(guionParaElevenLabs(),e.currentTarget));
+  const zm=$('#zona-mp3');zm.addEventListener('click',()=>$('#in-mp3').click());
+  ['dragenter','dragover'].forEach(t=>zm.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();zm.classList.add('encima')}));
+  ['dragleave','drop'].forEach(t=>zm.addEventListener(t,()=>zm.classList.remove('encima')));
+  zm.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();cargarLocuciones([...e.dataTransfer.files])});
+  $('#in-mp3').addEventListener('change',e=>{const f=[...e.target.files];e.target.value='';cargarLocuciones(f)});
+
   for(const r of['N','V2','C'])$('#voz-'+r).addEventListener('change',e=>{state.voces[r]=e.target.value;invalidar();infoTTS();guardarLocal()});
   $('#el-modelo').addEventListener('change',e=>{state.modelo=e.target.value;invalidar();infoTTS();guardarLocal()});
   $('#btn-tts').addEventListener('click',generarTTS);
-  $('#in-voz').addEventListener('change',async e=>{const f=e.target.files[0];if(!f){audio.propia=null;audio.propiaNombre='';invalidar();infoTTS();return}
-    try{audio.propia=await ctxAudio().decodeAudioData(await f.arrayBuffer());audio.propiaNombre=f.name;estadoTTS(`Locución cargada: ${f.name} (${fmt(audio.propia.duration)}).`)}
-    catch(_){estadoTTS('No pude leer ese audio. Probá con MP3 o WAV.',true)}invalidar();infoTTS();dibujarVista()});
+  $('#in-voz').addEventListener('change',e=>{const f=[...e.target.files];if(!f.length){audio.propia=null;audio.propiaNombre='';invalidar();infoTTS();return}cargarLocuciones(f)});
   $('#btn-voz-wav').addEventListener('click',bajarVozWav);$('#btn-voz-mp3').addEventListener('click',bajarVozMp3);
   // música
   $('#in-musica').addEventListener('change',async e=>{const fs=[...e.target.files];let mal=0;
@@ -6135,7 +6269,7 @@ async function iniciar(){
   if(enVistaPrevia())$('#aviso-vista').hidden=false;
   hacerGrano();initThree();await cargarRetratos();
   voicesList=[...VOCES_CUENTA];
-  const k=lsGet('ae_key','');$('#el-key').value=k||CLAVE_EL;
+  const k=lsGet('ae_key_ok','');$('#el-key').value=k||CLAVE_EL;
   enlazar();
   let p=null;try{p=JSON.parse(lsGet(CLAVE_LS,'null'))}catch(e){}
   cargarProyecto(p||{});
