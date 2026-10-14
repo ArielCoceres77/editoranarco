@@ -238,7 +238,7 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
     </div>
     <div class="sub">
       <h3>Guion</h3>
-      <div class="leyenda"><span><code>[N]</code> narrador</span><span><code>[V2]</code> segunda voz</span><span><code>[C]</code> citas</span></div>
+      <div class="leyenda"><span><code>[N]</code> Mijaíl</span><span><code>[V2]</code> Emma</span><span><code>[C]</code> citas</span></div>
       <label for="guion" class="sr">Guion</label>
       <textarea id="guion" spellcheck="true"></textarea>
       <p class="ayuda" id="guion-info"></p>
@@ -250,8 +250,8 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
     <div class="sub">
       <h3>Voces de ElevenLabs</h3>
       <div class="fila">
-        <div><label for="voz-N">Narrador [N]</label><select id="voz-N"></select></div>
-        <div><label for="voz-V2">Segunda voz [V2]</label><select id="voz-V2"></select></div>
+        <div><label for="voz-N">Mijaíl, conductor [N]</label><select id="voz-N"></select></div>
+        <div><label for="voz-V2">Emma, conductora [V2]</label><select id="voz-V2"></select></div>
         <div><label for="voz-C">Citas [C]</label><select id="voz-C"></select></div>
       </div>
       <div class="fila" style="margin-top:10px;align-items:end">
@@ -4680,13 +4680,13 @@ function generarGuion(){
   const L=[];
   // INTRO
   L.push('# INTRO');
-  L.push(`[V2] AnarcoEfemérides. ${punto(state.titulo||'Memoria libertaria')}`);
+  L.push(`[V2] AnarcoEfemérides. ${punto(state.titulo||'Memoria libertaria')} Soy Emma.`);
   const ini=[];
   if(state.fecha)ini.push(/\d+\s+al\s+\d+/.test(state.fecha)?`Esta semana salimos a caminar: del ${state.fecha}.`:`Hoy es ${state.fecha}, y salimos a caminar.`);
   ini.push('Bienvenidas y bienvenidos a AnarcoEfemérides. Acá la historia no se lee en los libros del poder: se recorre a pie, entre monumentos que levantó la memoria de abajo.');
   ini.push(evs.length>1?`Hoy el recorrido tiene ${evs.length} paradas, desde ${primera} hasta ${ultima}.`:`Hoy el recorrido nos lleva a una sola fecha: ${primera}.`);
   ini.push('Caminemos despacio. Cada cartel guarda una fecha, y cada fecha guarda una lucha.');
-  L.push('[N] '+ini.join(' '));
+  L.push('[N] Y yo soy Mijaíl. '+ini.join(' '));
   // presupuesto de palabras
   const objetivo=Math.max(110,state.duracion*60-8-(evs.length+2)*2.6-evs.length*2.2)*2.45;
   const bloques=evs.map((ev,k)=>{
@@ -4705,7 +4705,7 @@ function generarGuion(){
     const p2=[];
     if(prot.length===1)p2.push(`Desde los afiches de la plaza nos mira ${prot[0].nombre}.`);
     else if(prot.length>1)p2.push(`Desde los afiches de la plaza nos miran ${listaY(prot.map(p=>p.nombre))}.`);
-    if(p2.length)b.lineas.push('[N] '+p2.join(' '));
+    if(p2.length)b.lineas.push('[V2] '+p2.join(' '));
     if(ev.cita){const au=(ev.autor||'').trim().replace(/[.:,]$/,'');b.lineas.push(`[N] ${au?au+(au.includes(',')?',':'')+' lo dijo así:':'Una voz de aquel tiempo lo dijo así:'}`);b.lineas.push('[C] '+ev.cita.trim())}
     const anio=parseFecha(ev.fecha).anio;
     if(ev.lugar)b.extra.push(`Imaginemos ${anio?'aquel '+anio+' en ':''}${ev.lugar}: el ruido, la tensión, las conversaciones en voz baja.`);
@@ -4717,12 +4717,13 @@ function generarGuion(){
       if(a1&&a2&&a2>a1)tr=`Dejamos atrás ${a1}. Caminamos ${a2-a1===1?'un año':(a2-a1)+' años'} hacia adelante.`;
       else if(a1&&a2&&a2===a1)tr=`Seguimos en ${a1}. Apenas unos pasos más.`;
       else tr='Seguimos por la avenida. El tiempo avanza con nosotros.';
-      b.trans='[N] '+tr}
+      b.trans='[V2] '+tr}
     return b});
   const cierre=['# CIERRE',
     `[N] Llegamos al final del recorrido de hoy. Desde acá arriba se ve toda la avenida${anios.length>1?': '+listaY([...new Set(anios)].map(String)):''}. Fechas distintas, una misma idea que se niega a morir.`,
-    '[V2] Ni patrón, ni frontera, ni olvido.',
-    '[N] Si esta historia te sirvió, compartila, copiala, difundila. La memoria es copyleft. Esto fue AnarcoEfemérides.'];
+    '[V2] Ni patrón, ni frontera, ni olvido. Si esta historia te sirvió, compartila, copiala, difundila: la memoria es copyleft.',
+    '[N] Esto fue AnarcoEfemérides. Te habló Mijaíl.',
+    '[V2] Y Emma. Salud, y hasta la próxima fecha.'];
   const armarDesc=b=>{b.lineas[b.idxDesc]='[N] '+[b.llegada,...b.desc].join(' ')};bloques.forEach(armarDesc);
   const base=[...L,...bloques.flatMap(b=>[...b.lineas,b.trans||'']),...cierre].join('\n');
   let falta=objetivo-palabras(base.replace(/\[\w+\]|#.*$/gm,''));
@@ -4739,13 +4740,17 @@ function generarGuion(){
   let resumido=false;
   while(falta<-objetivo*.06){const b=bloques.filter(b=>b.desc.length>1).sort((a,c)=>palabras(c.desc.join(' '))-palabras(a.desc.join(' ')))[0];if(!b)break;
     const f=b.desc.pop();falta+=palabras(f);armarDesc(b);resumido=true}
-  if(falta<-objetivo*.06&&ini.length>2){const quit=ini.splice(1,ini.length-2);falta+=palabras(quit.join(' '));L[2]='[N] '+ini.join(' ');resumido=true}
+  if(falta<-objetivo*.06&&ini.length>2){const quit=ini.splice(1,ini.length-2);falta+=palabras(quit.join(' '));L[2]='[N] Y yo soy Mijaíl. '+ini.join(' ');resumido=true}
   generarGuion.resumido=resumido;
   bloques.forEach((b,k)=>{
     L.push(`# ${k+1} · ${b.ev.fecha||'s/f'} · ${b.ev.titulo||'Sin título'}`);
-    L.push(...b.lineas);
-    if(add[k].length)L.push('[N] '+add[k].join(' '));
-    if(b.trans)L.push(b.trans);
+    const sec=[...b.lineas.filter(l=>l&&!/^\[\w+\]\s*$/.test(l))];
+    const ult=()=>(sec[sec.length-1]||'').match(/^\[(\w+)\]/)?.[1];
+    if(add[k].length){const h=Math.ceil(add[k].length/2);const v1=ult()==='N'?'V2':'N';sec.push(`[${v1}] `+add[k].slice(0,h).join(' '));if(add[k].length>h)sec.push(`[${v1==='N'?'V2':'N'}] `+add[k].slice(h).join(' '))}
+    if(b.trans)sec.push(b.trans);
+    // dos intervenciones seguidas de la misma voz se funden en una
+    for(const l of sec){const m=l.match(/^\[(\w+)\]\s*(.*)$/);const prev=L[L.length-1].match(/^\[(\w+)\]\s*(.*)$/);
+      if(m&&prev&&m[1]===prev[1]&&m[1]!=='C'&&!/:$/.test(prev[2]))L[L.length-1]+=' '+m[2];else L.push(l)}
   });
   L.push(...cierre);
   return L.join('\n');
@@ -4758,8 +4763,8 @@ function parseGuion(txt){
     if(line.startsWith('#')){cur=null;const h=line.replace(/^#+\s*/,'');
       if(/^intro/i.test(h))sec=-1;else if(/^cierre|^final|^outro/i.test(h))sec=999;else{const m=h.match(/^(\d+)/);sec=m?(+m[1]-1):sec}
       continue}
-    const m=line.match(/^\[(N|V2|C)\]\s*(.*)$/i);
-    if(m){cur={sec,voz:m[1].toUpperCase(),texto:m[2].trim()};segs.push(cur)}
+    const m=line.match(/^\[(N|V2|C|MIJA[IÍ]L|EMMA|CITA)\]\s*(.*)$/i);
+    if(m){const t=m[1].toUpperCase();cur={sec,voz:/^MIJA/.test(t)?'N':t==='EMMA'?'V2':t==='CITA'?'C':t,texto:m[2].trim()};segs.push(cur)}
     else if(cur)cur.texto+=' '+line;
     else{cur={sec,voz:'N',texto:line};segs.push(cur)}
   }
@@ -4779,18 +4784,18 @@ REGLAS: no inventes datos ni citas textuales. Usá solo citas que estén en la l
 
 FORMATO OBLIGATORIO (respetalo exacto, sin agregar nada antes ni después):
 # INTRO
-[V2] frase corta de apertura
-[N] texto del narrador
+[V2] frase corta de apertura (habla Emma)
+[N] texto de Mijaíl
 # 1 · fecha · título
 [V2] fecha y lugar
 [N] texto
 [C] cita textual (solo si existe)
 # 2 · ...
 # CIERRE
-[N] texto de cierre
-[V2] Ni patrón, ni frontera, ni olvido.
+[N] texto de cierre (Mijaíl)
+[V2] Ni patrón, ni frontera, ni olvido. (Emma)
 
-[N] = narrador, [V2] = segunda voz que anuncia fechas, [C] = voz para citas. Una línea por intervención.
+Los conductores son dos voces que nunca aparecen en pantalla: [N] = Mijaíl (narra y desarrolla el relato), [V2] = Emma (anuncia fechas y lugares, comenta y le da el pie a Mijaíl; alternan como en una radio), [C] = voz para citas. Se presentan por su nombre al principio y se despiden al final. Una línea por intervención.
 
 PARADAS (en este orden):
 ${evs.map((e,i)=>`${i+1}. ${e.fecha} — ${e.lugar}\n   Título: ${e.titulo}\n   Protagonistas: ${parseProtagonistas(e.protagonistas).map(p=>p.nombre).join(', ')||'—'}\n   Qué pasó: ${e.descripcion}${e.cita?`\n   Cita: «${e.cita}» (${e.autor||'sin atribución'})`:''}`).join('\n')}`;
@@ -5614,6 +5619,7 @@ function dibujarOverlay(x,t,W,H){
     if(c){const fs=Math.round((vertical?50:44)*S);x.font=`500 ${fs}px Oswald`;const lin=envolver(x,c.txt,W*(vertical?.84:.7)).slice(0,3);
       const lh=fs*1.22;const pad=14*S;const y0=H-fh-(vertical?220*S:(state.cine&&W>H*1.3?H*.035+22*S:36*S))-lin.length*lh;
       x.textAlign='center';x.textBaseline='middle';
+      const quien=CONDUCTOR[c.voz];if(quien){x.save();x.font=`${Math.round(fs*.62)}px Anton`;const tw=x.measureText(quien).width+pad*1.6,th=fs*.86;const bx=W/2-tw/2,by=y0-th-4*S;x.fillStyle=c.voz==='V2'?COL.rojo:COL.negro;x.fillRect(bx,by,tw,th);x.fillStyle=COL.crema;x.textAlign='center';x.textBaseline='middle';x.fillText(quien,W/2,by+th/2+1*S);x.restore();x.font=`500 ${fs}px Oswald`}
       lin.forEach((l,i)=>{const w=x.measureText(l).width+pad*2;x.fillStyle=c.voz==='C'?COL.rojo:'rgba(22,18,18,.88)';x.fillRect(W/2-w/2,y0+i*lh,w,lh);x.fillStyle=COL.crema;x.fillText(c.voz==='C'&&i===0?'«'+l:l,W/2,y0+i*lh+lh/2+2*S)})}
   }
 }
@@ -5719,13 +5725,14 @@ const EL='https://api.elevenlabs.io';
 const CLAVE_EL='sk_d719b15bc56ecfab23a70c03529a68f26be5d7ed07552fd3';
 const VOCES_CUENTA=[
   {id:'21G73IDZjjz51HSwJh5s',nombre:'Mario p',cat:'cloned'},
-  {id:'YmwwQQdY9i3i0hBWn1SD',nombre:'Octavio (grave, mayor)',cat:''},
+  {id:'YmwwQQdY9i3i0hBWn1SD',nombre:'Octavio, grave (voz de Mijaíl)',cat:''},
   {id:'DdKbXdRlBmj7Ty7N0FVr',nombre:'Juanjo (grave)',cat:''},
   {id:'DZlhGG8Tll3rs5TbKAe2',nombre:'Jorge',cat:''},
-  {id:'icze3UzEOxn2jtNGx4ZM',nombre:'Amanda (mujer)',cat:''},
+  {id:'icze3UzEOxn2jtNGx4ZM',nombre:'Amanda (voz de Emma)',cat:''},
   {id:'aviXFY7Zd7b9DnCUwaCh',nombre:'Maicolangel',cat:''},
   {id:'D09EpJbk4um1HKSpeTSc',nombre:'Agustín (enérgico)',cat:''}];
-const VOZ_DEF={N:'21G73IDZjjz51HSwJh5s',V2:'YmwwQQdY9i3i0hBWn1SD',C:'DdKbXdRlBmj7Ty7N0FVr'};
+const VOZ_DEF={N:'YmwwQQdY9i3i0hBWn1SD',V2:'icze3UzEOxn2jtNGx4ZM',C:'DdKbXdRlBmj7Ty7N0FVr'};
+const CONDUCTOR={N:'MIJAÍL',V2:'EMMA',C:''};
 function estadoTTS(m,err){const e=$('#tts-estado');e.textContent=m||'';e.classList.toggle('error',!!err)}
 function enVistaPrevia(){try{return window.top!==window.self}catch(e){return true}}
 function errorRed(){
@@ -5780,9 +5787,9 @@ async function probarConexion(){
     try{mp3=await pedirVoz(key,voz,'Hola, compañeras y compañeros.',state.modelo)}
     catch(e){
       if(e.code==='voice_not_found'||e.status===404){
-        const vs=await cargarVoces(true);const alt=Array.isArray(vs)&&(vs.find(v=>/mario/i.test(v.name))||vs.find(v=>v.category==='cloned')||vs[0]);
+        const vs=await cargarVoces(true);const alt=Array.isArray(vs)&&(vs.find(v=>/octavio/i.test(v.name))||vs.find(v=>v.category==='cloned')||vs[0]);
         if(alt){state.voces.N=alt.voice_id;llenarVoces();$('#voz-N').value=alt.voice_id;guardarLocal();mp3=await pedirVoz(key,alt.voice_id,'Hola, compañeras y compañeros.',state.modelo);
-          estadoTTS(`La voz «Mario p» no está en la cuenta de esta clave: elegí «${alt.name}», que sí está. Si querés Mario p, usá la clave de la cuenta donde la clonaste.`)}
+          estadoTTS(`La voz de Mijaíl no está en la cuenta de esta clave: elegí «${alt.name}», que sí está.`)}
         else throw e;
       }else throw e;
     }
@@ -5802,12 +5809,12 @@ function llenarVoces(){
 function pendientes(){if(audio.propia)return[];return parseGuion(state.guion).filter(s=>!audioDeSeg(s))}
 function infoTTS(){
   const segs=parseGuion(state.guion);const pend=pendientes();const ch=pend.reduce((a,s)=>a+s.texto.length,0);
-  const nombre=(voicesList.find(v=>v.id===state.voces.N)||{}).nombre||'Mario p';
+  const nombre='Emma y Mijaíl';
   $('#tts-info').textContent=audio.propia?`Locución cargada: ${audio.propiaNombre} (${fmt(audio.propia.duration)}). Los subtítulos y las imágenes se acomodan a esa voz.`:
     !segs.length?'':pend.length?`La voz la pone ${nombre}: ${segs.length-pend.length} de ${segs.length} partes listas. Faltan ${ch.toLocaleString('es-AR')} caracteres (≈ ${ch.toLocaleString('es-AR')} créditos).`:`Voz completa: ${segs.length} partes con la voz de ${nombre}. Ya podés grabar.`;
   const b=$('#btn-tts');if(b)b.textContent=audio.propia?'✓ Voz cargada':pend.length?(segs.length-pend.length?'🎙 Completar la voz':'🎙 Ponerle la voz'):'✓ Voz lista';
   const box=$('#segs');box.hidden=!segs.length||!!audio.propia;
-  box.innerHTML=segs.map(s=>`<div><span class="${audioDeSeg(s)?'ok':'no'}">${audioDeSeg(s)?'●':'○'}</span><b>${s.voz}</b><span>${esc(s.texto.slice(0,90))}</span></div>`).join('');
+  box.innerHTML=segs.map(s=>`<div><span class="${audioDeSeg(s)?'ok':'no'}">${audioDeSeg(s)?'●':'○'}</span><b>${s.voz==='N'?'Mijaíl':s.voz==='V2'?'Emma':'Cita'}</b><span>${esc(s.texto.slice(0,90))}</span></div>`).join('');
 }
 async function generarTTS(){
   const key=claveActual();
@@ -5833,7 +5840,7 @@ async function generarTTS(){
 // Plan B: guion listo para pegar en ElevenLabs y soltar el MP3
 function guionParaElevenLabs(){
   const segs=parseGuion(state.guion);let out=[],sec=null;
-  for(const s of segs){if(s.sec!==sec&&out.length)out.push('');sec=s.sec;out.push(s.voz==='C'?`«${s.texto.replace(/^«|»$/g,'')}»`:s.texto)}
+  for(const s of segs){if(s.sec!==sec&&out.length)out.push('');sec=s.sec;out.push(s.voz==='C'?`[Cita] «${s.texto.replace(/^«|»$/g,'')}»`:`[${s.voz==='V2'?'Emma':'Mijaíl'}] ${s.texto}`)}
   return out.join('\n');
 }
 async function cargarLocuciones(lista){
@@ -6089,10 +6096,10 @@ let tMundo=null;
 function mundoLuego(){clearTimeout(tMundo);tMundo=setTimeout(()=>{construirMundo();invalidar();dibujarVista()},450)}
 const CLAVE_LS='ae4_proyecto';
 function guardarLocal(){lsSet(CLAVE_LS,JSON.stringify(proyecto()))}
-function proyecto(){return{v:6,tenir:state.tenir,seleccion:state.seleccion||{},fechaAuto:state.fechaAuto!==false,texto:state.texto||'',tituloAuto:state.tituloAuto,guionManual:state.guionManual,camara:state.camara,cine:state.cine,pelicula:state.pelicula,cenizas:state.cenizas,modo:state.modo,res:state.res,monitor:state.monitor,vozPrueba:state.vozPrueba,titulo:state.titulo,fecha:state.fecha,duracion:state.duracion,formato:state.formato,subs:state.subs,events:state.events,guion:state.guion,voces:state.voces,modelo:state.modelo,musVol:state.musVol,musDuck:state.musDuck}}
+function proyecto(){return{v:7,tenir:state.tenir,seleccion:state.seleccion||{},fechaAuto:state.fechaAuto!==false,texto:state.texto||'',tituloAuto:state.tituloAuto,guionManual:state.guionManual,camara:state.camara,cine:state.cine,pelicula:state.pelicula,cenizas:state.cenizas,modo:state.modo,res:state.res,monitor:state.monitor,vozPrueba:state.vozPrueba,titulo:state.titulo,fecha:state.fecha,duracion:state.duracion,formato:state.formato,subs:state.subs,events:state.events,guion:state.guion,voces:state.voces,modelo:state.modelo,musVol:state.musVol,musDuck:state.musDuck}}
 function hoyTexto(){const h=new Date();return h.getDate()+' de '+MES_NOM[h.getMonth()+1]}
 function cargarProyecto(p){
-  Object.assign(state,{tenir:p.tenir!==false,seleccion:p.seleccion||{},fechaAuto:p.fechaAuto!==false,todas:[],texto:p.texto||'',tituloAuto:p.tituloAuto!==false,guionManual:!!p.guionManual,camara:p.camara||'dinamico',cine:p.cine!==false,pelicula:p.pelicula!==false,cenizas:p.cenizas!==false,modo:p.modo||'real',res:p.res||'1080',monitor:p.monitor!==false,vozPrueba:p.vozPrueba!==false,titulo:p.titulo||'',fecha:p.fecha||hoyTexto(),duracion:+p.duracion||5,formato:p.formato||'16:9',subs:p.subs!==false,events:(p.events||[]).map(e=>({...nuevoEvento(),...e})),guion:p.guion||'',voces:{...VOZ_DEF,...(p.voces||{})},modelo:p.modelo||'eleven_multilingual_v2',musVol:p.musVol??.55,musDuck:p.musDuck??.16});
+  Object.assign(state,{tenir:p.tenir!==false,seleccion:p.seleccion||{},fechaAuto:p.fechaAuto!==false,todas:[],texto:p.texto||'',tituloAuto:p.tituloAuto!==false,guionManual:!!p.guionManual,camara:p.camara||'dinamico',cine:p.cine!==false,pelicula:p.pelicula!==false,cenizas:p.cenizas!==false,modo:p.modo||'real',res:p.res||'1080',monitor:p.monitor!==false,vozPrueba:p.vozPrueba!==false,titulo:p.titulo||'',fecha:p.fecha||hoyTexto(),duracion:+p.duracion||5,formato:p.formato||'16:9',subs:p.subs!==false,events:(p.events||[]).map(e=>({...nuevoEvento(),...e})),guion:p.guion||'',voces:(p.v||0)>=7?{...VOZ_DEF,...(p.voces||{})}:{...VOZ_DEF},modelo:p.modelo||'eleven_multilingual_v2',musVol:p.musVol??.55,musDuck:p.musDuck??.16});
   $('#ef-texto').value=state.texto;textoLeido=state.texto;
   $('#ep-titulo').value=state.tituloAuto?'':state.titulo;$('#ep-titulo').placeholder=state.titulo||'Se completa solo';$('#ep-fecha').value=state.fecha;
   ($('#dur-'+state.duracion)||$('#dur-5')).checked=true;$$('input[name=fmt]').forEach(r=>r.checked=r.value===state.formato);
