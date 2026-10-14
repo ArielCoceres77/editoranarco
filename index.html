@@ -132,6 +132,11 @@ footer{text-align:center;padding:24px 16px 40px;font-size:13px;color:var(--gris)
 footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:18px;letter-spacing:.5px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.modal{position:fixed;inset:0;background:rgba(10,8,8,.6);display:flex;align-items:center;justify-content:center;z-index:999;padding:16px}
+.modal-caja{background:#F7F1E3;border:3px solid #111;max-width:520px;width:100%;padding:18px 20px;box-shadow:8px 8px 0 #B3121B}
+.modal-caja h3{margin:0 0 8px;font-family:var(--display);text-transform:uppercase;color:#B3121B}
+.modal-caja .diag{font-size:13px;opacity:.8}
+.aviso.error{background:#B3121B;color:#fff}
 </style>
 </head>
 <body>
@@ -141,6 +146,9 @@ footer b{font-family:var(--display);font-weight:400;color:var(--rojo);font-size:
     <p>Escribí las efemérides · el video se arma solo</p>
   </div>
 </header>
+<div id="aviso-arranque" class="aviso">⏳ Cargando el editor… Si este cartel no desaparece en unos segundos, el programa no puede funcionar acá: <b>descargá el archivo y abrilo con doble clic en Chrome o Edge</b> (en una computadora).</div>
+<div id="modal-error" class="modal" hidden role="alertdialog" aria-labelledby="modal-tit"><div class="modal-caja"><h3 id="modal-tit">La voz no salió</h3><p id="modal-txt"></p><p id="modal-diag" class="diag"></p>
+<p class="diag">Mientras tanto, abrí «¿La voz no conecta? Plan B»: funciona siempre.</p><div class="fila"><button type="button" id="modal-copiar" class="claro">Copiar para mandárselo a Claude</button><button type="button" id="modal-ok" class="rojo">Entendido</button></div></div></div>
 <div id="aviso-vista" class="aviso" hidden>Estás viendo una vista previa: acá no hay internet ni descargas. <b>Descargá el archivo y abrilo con doble clic en Chrome o Edge</b> para que funcionen la voz y la grabación.</div>
 
 <main>
@@ -5662,7 +5670,7 @@ let reproduciendo=false,t0Play=0,tPlay=0,fuente=null;
 function dimsFormato(f,base){const m={'16:9':[1920,1080],'4:5':[1080,1350],'9:16':[1080,1920]}[f];if(!base)return m;const s=base/Math.max(m[0],m[1]);return[Math.round(m[0]*s/2)*2,Math.round(m[1]*s/2)*2]}
 function ajustarVista(){const[w,h]=dimsFormato(state.formato,state.formato==='16:9'?768:640);if(vista.width!==w||vista.height!==h){vista.width=w;vista.height=h}}
 function ctxAudio(){if(!audio.ctx)audio.ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:48000});return audio.ctx}
-function dibujarVista(){if(grabandoReal)return;ajustarVista();try{renderCuadro(vctx,tPlay,vista.width,vista.height)}catch(e){console.error(e)}const T=tl();const pl=planoActual(tPlay);$('#t-label').textContent=fmt(tPlay)+' / '+fmt(T.total)+(pl?' · '+pl:'');$('#scrub').value=Math.round(tPlay/T.total*1000)}
+function dibujarVista(){if(grabandoReal)return;ajustarVista();try{renderCuadro(vctx,tPlay,vista.width,vista.height)}catch(e){console.error(e)}const T=tl();let pl='';try{pl=planoActual(tPlay)}catch(e){}$('#t-label').textContent=fmt(tPlay)+' / '+fmt(T.total)+(pl?' · '+pl:'');$('#scrub').value=Math.round(tPlay/T.total*1000)}
 async function play(){
   if(reproduciendo){pausa();return}
   const T=tl();if(tPlay>=T.total-.1)tPlay=0;
@@ -5733,7 +5741,10 @@ const VOCES_CUENTA=[
   {id:'D09EpJbk4um1HKSpeTSc',nombre:'Agustín (enérgico)',cat:''}];
 const VOZ_DEF={N:'YmwwQQdY9i3i0hBWn1SD',V2:'icze3UzEOxn2jtNGx4ZM',C:'DdKbXdRlBmj7Ty7N0FVr'};
 const CONDUCTOR={N:'MIJAÍL',V2:'EMMA',C:''};
-function estadoTTS(m,err){const e=$('#tts-estado');e.textContent=m||'';e.classList.toggle('error',!!err)}
+function estadoTTS(m,err){const e=$('#tts-estado');e.textContent=m||'';e.classList.toggle('error',!!err);if(err&&m)mostrarError(m)}
+function mostrarError(m){const d=$('#modal-error');if(!d)return;$('#modal-txt').textContent=m;
+  $('#modal-diag').textContent=`Diagnóstico: ${location.protocol==='file:'?'archivo local':location.protocol} · ${enVistaPrevia()?'dentro de una vista previa':'ventana normal'} · ${navigator.onLine?'con internet':'SIN internet'} · ${navigator.userAgent.match(/(Edg|Chrome|Firefox|Safari)\/[\d.]+/)?.[0]||'navegador desconocido'}`;
+  d.hidden=false;try{d.scrollIntoView({block:'center'})}catch(_){}}
 function enVistaPrevia(){try{return window.top!==window.self}catch(e){return true}}
 function errorRed(){
   if(enVistaPrevia())return'No hay conexión porque el editor está abierto dentro de una vista previa. Descargá el archivo y abrilo con doble clic en Chrome o Edge.';
@@ -6145,8 +6156,8 @@ function actualizarTodo(){
     $('#ep-titulo').placeholder=state.titulo||'Se completa solo';
     if(!state.guionManual){state.guion=evs.length?generarGuion():'';$('#guion').value=state.guion}
     const firma=JSON.stringify([state.events.map(e=>[e.fecha,e.titulo,e.protagonistas,e.monumento,e.lugar,e.descripcion.length]),MEDIA.map(m=>m.id+m.parada),state.tenir,Object.keys(RETRATOS)]);
-    if(firma!==firmaMundo){firmaMundo=firma;construirMundo()}
-    renderMedia();
+    if(firma!==firmaMundo){firmaMundo=firma;try{construirMundo()}catch(e){console.error('mundo',e)}}
+    try{renderMedia()}catch(e){console.error(e)}
     invalidar();infoGuion();infoTTS();
     if(evs.length){try{generarSEO()}catch(e){console.error(e)}
       try{const c=miniatura(1280,720);$('#mini-prev').src=c.toDataURL('image/jpeg',.85);tamActual=''}catch(e){console.error(e)}}
@@ -6274,19 +6285,25 @@ function enlazar(){
 async function iniciar(){
   try{await Promise.all([document.fonts.load('80px Anton'),document.fonts.load('600 40px Oswald'),document.fonts.load('500 40px Oswald')])}catch(e){}
   if(enVistaPrevia())$('#aviso-vista').hidden=false;
-  hacerGrano();initThree();await cargarRetratos();
+  const fallas=[];const paso=async(n,f)=>{try{await f()}catch(e){console.error(n,e);fallas.push(n+': '+(e&&e.message||e))}};
+  await paso('textura',hacerGrano);
+  await paso('3D',initThree);
+  if(fallas.some(f=>f.startsWith('3D')))fallas[fallas.length-1]='El 3D (WebGL) no arrancó en este navegador. En Chrome: Configuración → Sistema → activá «Usar aceleración de hardware» y reiniciá Chrome. La voz igual funciona.';
+  await paso('retratos',cargarRetratos);
   voicesList=[...VOCES_CUENTA];
   const k=lsGet('ae_key_ok','');$('#el-key').value=k||CLAVE_EL;
-  enlazar();
+  await paso('botones',enlazar);
+  window.__AE_FALLAS=fallas;
   let p=null;try{p=JSON.parse(lsGet(CLAVE_LS,'null'))}catch(e){}
-  cargarProyecto(p||{});
-  renderEventos();infoTexto();ayudaModo();
-  await cargarMusicaCanal();
-  actualizarTodo();
+  await paso('proyecto',()=>{cargarProyecto(p||{});renderEventos();infoTexto();ayudaModo()});
+  await paso('música',cargarMusicaCanal);
+  await paso('actualizar',actualizarTodo);
+  const av=$('#aviso-arranque');if(av){if(fallas.length){av.innerHTML='⚠ El editor arrancó con problemas: '+fallas.map(esc).join(' · ');av.classList.add('error')}else av.hidden=true}
   window.__AE={state,tl,renderCuadro,exportar,miniatura,generarSEO,construirTL,plano:planoActual,actualizarTodo,set t(v){tPlay=v;dibujarVista()}};
   if(!enVistaPrevia())cargarVoces(true);
 }
-iniciar();
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='modal-ok')$('#modal-error').hidden=true;if(e.target&&e.target.id==='modal-copiar'){try{navigator.clipboard.writeText($('#modal-txt').textContent+'\n'+$('#modal-diag').textContent);e.target.textContent='✓ Copiado'}catch(_){}}});
+iniciar().catch(e=>{const av=$('#aviso-arranque');if(av){av.textContent='⚠ El editor no pudo arrancar: '+(e&&e.message||e)+'. Mandale este mensaje a Claude.';av.classList.add('error')}});
 </script>
 </body>
 </html>
